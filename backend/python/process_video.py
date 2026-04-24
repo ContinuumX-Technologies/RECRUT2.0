@@ -214,19 +214,24 @@ def process_video():
             # ---- Face Recognition (Identity Sync) ----
             if known_face is not None:
                 # We use the already converted RGB frame
-                # For performance, we only check the first face found
                 face_locations = face_recognition.face_locations(rgb)
                 if face_locations:
                     face_encodings = face_recognition.face_encodings(rgb, face_locations)
                     if face_encodings:
-                        match = face_recognition.compare_faces([known_face], face_encodings[0], tolerance=0.6)
-                        if not match[0]:
+                        # Check all detected faces: if none match the reference, it's a mismatch
+                        any_match = any(face_recognition.compare_faces([known_face], enc, tolerance=0.6)[0] for enc in face_encodings)
+                        
+                        if not any_match:
                             stats["face_mismatch"] += 1
                 else:
                     # Mediapipe found landmarks, but face_recognition didn't find the face.
-                    # This can happen with extreme angles. We don't count it as mismatch yet
-                    # unless it persists. For now, we just skip.
-                    pass
+                    # This can happen with extreme angles. 
+                    # We count as mismatch if face_recognition can't find a face at all but identity is required.
+                    stats["face_mismatch"] += 1
+        else:
+            # No face found by Mediapipe (Face completely missing from frame)
+            if known_face is not None:
+                stats["face_mismatch"] += 1
 
         # ---- Optical Flow (AirSpace) ----
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

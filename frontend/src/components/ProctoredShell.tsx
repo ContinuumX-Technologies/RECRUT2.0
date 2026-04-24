@@ -1,10 +1,11 @@
-// frontend/src/components/ProctoredShell.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { useGazeTracker } from '../hooks/useGazeTracker';
+import type { ProctorAlert } from '../hooks/useProctorAlert';
 
 type Props = {
   interviewId: string;
   children: React.ReactNode; // your interview questions UI
+  proctorAlert?: ProctorAlert | null;
 };
 
 type ProctorState = {
@@ -33,7 +34,7 @@ async function sendEvent(interviewId: string, type: string, payload: any = {}) {
   }
 }
 
-export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
+export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctorAlert }) => {
   const [started, setStarted] = useState(false);
   const [state, setState] = useState<ProctorState>({
     fullscreen: false,
@@ -278,6 +279,19 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
             I understand, start interview
           </button>
         </div>
+
+        {/* Show alerts even before starting */}
+        {proctorAlert?.hasWarning && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-50">
+            <div className="bg-red-900 border border-red-500 rounded-lg p-4 shadow-2xl flex items-start gap-3">
+              <div className="text-red-400 mt-1">⚠️</div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Identity Verification Warning</h3>
+                <p className="text-xs text-red-100">{proctorAlert.message || 'Suspicious activity detected.'}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

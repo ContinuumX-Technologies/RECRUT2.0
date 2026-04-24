@@ -1150,7 +1150,7 @@ export function CandidateInterviewPage() {
       data-lk-theme="default"
     >
       <RoomConnector />
-      <ProctoredShell interviewId={interviewId}>
+      <ProctoredShell interviewId={interviewId} proctorAlert={alert}>
         <div className="apple-interview">
           {/* ================================
               NAVIGATION BAR
