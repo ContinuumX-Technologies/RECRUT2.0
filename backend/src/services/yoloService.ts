@@ -51,7 +51,7 @@ function getPythonPath(): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main YOLO analysis function
 // ─────────────────────────────────────────────────────────────────────────────
-export const runYoloAnalysis = (videoPath: string,interviewId: string): Promise<any> => {
+export const runYoloAnalysis = (videoPath: string, interviewId: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     const task = async () => {
       const interview = await prisma.interview.findUnique({ where: { id: interviewId } });
@@ -59,29 +59,29 @@ export const runYoloAnalysis = (videoPath: string,interviewId: string): Promise<
 
       const args = [videoPath, '--model', 'yolov8n.pt'];
       if (refFace && fs.existsSync(refFace)) {
-         args.push('--reference', refFace); // Pass it to Python
+        args.push('--reference', refFace);
       }
       const scriptPath = path.join(process.cwd(), 'python');
-      
+
       if (!fs.existsSync(videoPath)) {
-         resolve({ error: "File missing on disk" });
-         return;
+        resolve({ error: "File missing on disk" });
+        return;
       }
 
       const options: Options = {
         mode: 'text',
-        pythonPath: './venv/bin/python', // Ensure this points to your venv python
+        pythonPath: './venv/bin/python',
         scriptPath: scriptPath,
-        args: [videoPath, '--model', 'yolov8n.pt']
+        args: args // Use the constructed args array
       };
 
       try {
         const messages = await PythonShell.run('process_video.py', options);
-        
+
         if (!messages || messages.length === 0) {
-           throw new Error("No output from Python script");
+          throw new Error("No output from Python script");
         }
-        
+
         // Parse the LAST message
         const lastMsg = messages[messages.length - 1];
         const result = JSON.parse(lastMsg);

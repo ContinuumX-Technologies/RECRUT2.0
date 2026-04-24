@@ -13,7 +13,7 @@ const hume = new HumeClient({
 // 2. USE ID, NOT NAME
 // If "Rajesh" is a custom voice, you MUST use its ID.
 // Using just the name with provider "HUME_AI" only works for stock voices (e.g., "Kora").
-const RAJESH_VOICE_ID = "8b9ed861-3382-455d-9c03-a40671943d6b"; 
+const RAJESH_VOICE_ID = "8b9ed861-3382-455d-9c03-a40671943d6b";
 
 // If you really want to use a stock voice, change this to:
 // const STOCK_VOICE = { name: "Matt", provider: "HUME_AI" } as const;
@@ -37,7 +37,7 @@ export async function synthesizeRajeshVoice(
           text,
           // 3. Pass the ID directly for custom voices
           voice: {
-            id: RAJESH_VOICE_ID, 
+            id: RAJESH_VOICE_ID,
           },
         },
       ],
@@ -48,7 +48,7 @@ export async function synthesizeRajeshVoice(
 
     // 5. Safety check on the response structure
     const base64Audio = response.generations?.[0]?.audio;
-    
+
     if (!base64Audio) {
       console.error("Hume Response:", JSON.stringify(response, null, 2));
       throw new Error("Hume TTS returned no audio data. Check if Voice ID is valid.");
@@ -58,7 +58,7 @@ export async function synthesizeRajeshVoice(
     fs.writeFileSync(outputPath, buffer);
 
     return { audioPath: `/ai-voice/${fileName}` };
-    
+
   } catch (error) {
     console.error("Error synthesizing voice:", error);
     throw error;

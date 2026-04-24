@@ -72,10 +72,10 @@ export function setupRealtimeInterviewWSS(server: any) {
         // [FETCH] Current Interview Details
         const currentInterview = await prisma.interview.findUnique({
           where: { id: interviewId! },
-          select: { 
-            candidateId: true, 
+          select: {
+            candidateId: true,
             resumeData: true,
-            candidateName: true 
+            candidateName: true
           },
         });
 
@@ -115,7 +115,7 @@ export function setupRealtimeInterviewWSS(server: any) {
             const historyList = pastInterviews.map((p: { aiSummary: any; completedAt: string | number | Date; template: { name: any; }; }) => {
               const summary = p.aiSummary as any; // { strengths, weaknesses, overallScore }
               const dateStr = p.completedAt ? new Date(p.completedAt).toDateString() : "Unknown Date";
-              
+
               return `
               ---
               DATE: ${dateStr}
@@ -309,20 +309,20 @@ Failure to enforce discrepancy checks is considered incorrect behavior.
     client.on("message", (data) => {
       try {
         const strData = data.toString();
-        
+
         // Check if it's a COMMIT signal from frontend
         if (strData.startsWith("{") && strData.endsWith("}")) {
-            try {
-                const command = JSON.parse(strData);
-                if (command.type === "commit") {
-                    if (openaiReady && openaiWS.readyState === WebSocket.OPEN) {
-                        console.log("▶️ [WS] Received manual COMMIT signal");
-                        openaiWS.send(JSON.stringify({ type: "input_audio_buffer.commit" }));
-                        openaiWS.send(JSON.stringify({ type: "response.create" }));
-                    }
-                    return; 
-                }
-            } catch (e) {}
+          try {
+            const command = JSON.parse(strData);
+            if (command.type === "commit") {
+              if (openaiReady && openaiWS.readyState === WebSocket.OPEN) {
+                console.log("▶️ [WS] Received manual COMMIT signal");
+                openaiWS.send(JSON.stringify({ type: "input_audio_buffer.commit" }));
+                openaiWS.send(JSON.stringify({ type: "response.create" }));
+              }
+              return;
+            }
+          } catch (e) { }
         }
 
         // Handle Audio Chunk
@@ -354,9 +354,9 @@ Failure to enforce discrepancy checks is considered incorrect behavior.
       } catch {
         return;
       }
-      
+
       if (event.type === 'error') {
-          console.error("❌ [OPENAI ERROR]", event.error);
+        console.error("❌ [OPENAI ERROR]", event.error);
       }
 
       // 🎤 CANDIDATE ANSWER LOGGING
@@ -427,7 +427,7 @@ Failure to enforce discrepancy checks is considered incorrect behavior.
                   customConfig: {
                     ...currentConfig,
                     questions: updatedQuestions,
-                    conversationLog: updatedLog 
+                    conversationLog: updatedLog
                   },
                 },
               });
@@ -444,7 +444,7 @@ Failure to enforce discrepancy checks is considered incorrect behavior.
                 question: newQuestion,
               })
             );
-          } catch {}
+          } catch { }
 
           // ---- TTS Streaming ----
           try {

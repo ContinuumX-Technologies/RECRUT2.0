@@ -230,9 +230,9 @@ const ErrorScreen = ({
 const RoomConnector = () => {
   const { localParticipant } = useLocalParticipant();
   useEffect(() => {
-    if(localParticipant) {
-        localParticipant.setCameraEnabled(true);
-        localParticipant.setMicrophoneEnabled(true);
+    if (localParticipant) {
+      localParticipant.setCameraEnabled(true);
+      localParticipant.setMicrophoneEnabled(true);
     }
   }, [localParticipant]);
   return null;
@@ -260,7 +260,6 @@ export function CandidateInterviewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [consoleTab, setConsoleTab] = useState<ConsoleTab>('testcase');
   const [showSidebar, setShowSidebar] = useState(false);
@@ -353,7 +352,7 @@ export function CandidateInterviewPage() {
     // ✅ ROBUST CLEANUP
     return () => {
       console.log("🧹 [WS] Cleaning up connection");
-      
+
       // 1. Remove listeners to prevent "WebSocket is closed" errors from firing
       ws.onerror = null;
       ws.onclose = null;
@@ -388,56 +387,56 @@ export function CandidateInterviewPage() {
       console.warn("Realtime WS not ready");
       return;
     }
-  
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micStreamRef.current = stream;
-  
+
     audioContextRef.current = new AudioContext({ sampleRate: 16000 });
     const source = audioContextRef.current.createMediaStreamSource(stream);
-  
+
     processorRef.current =
       audioContextRef.current.createScriptProcessor(4096, 1, 1);
-  
+
     source.connect(processorRef.current);
     processorRef.current.connect(audioContextRef.current.destination);
-  
+
     processorRef.current.onaudioprocess = (e) => {
       if (
         !realtimeWSRef.current ||
         realtimeWSRef.current.readyState !== WebSocket.OPEN
       ) return;
-  
+
       const pcm = floatTo16BitPCM(
         e.inputBuffer.getChannelData(0)
       );
-  
+
       // ✅ SEND RAW PCM ONLY
       realtimeWSRef.current.send(pcm);
     };
   };
-  
+
 
   const stopRealtimeAudio = () => {
     processorRef.current?.disconnect();
     audioContextRef.current?.close();
     micStreamRef.current?.getTracks().forEach(t => t.stop());
-  
+
     processorRef.current = null;
     audioContextRef.current = null;
     micStreamRef.current = null;
-  
+
     // [FIX] Send explicit COMMIT signal to backend
     // This tells OpenAI we are done speaking and forces a response.
     if (realtimeWSRef.current && realtimeWSRef.current.readyState === WebSocket.OPEN) {
-        console.log("📨 [WS] Sending commit signal...");
-        realtimeWSRef.current.send(JSON.stringify({ type: "commit" }));
+      console.log("📨 [WS] Sending commit signal...");
+      realtimeWSRef.current.send(JSON.stringify({ type: "commit" }));
     } else {
-        console.warn("⚠️ [WS] Socket not open, cannot send commit.");
+      console.warn("⚠️ [WS] Socket not open, cannot send commit.");
     }
-  
+
     console.log("🎙️ Recording stopped (WS kept open for response)");
   };
-  
+
   // ==========================================
   // HELPER: apiFetch (with Auth Fix)
   // ==========================================
@@ -452,8 +451,8 @@ export function CandidateInterviewPage() {
       } catch (e) { /* ignore parse error */ }
     }
 
-    const headers: Record<string, string> = { 
-      "Content-Type": "application/json" 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
     };
 
     if (token) {
@@ -551,17 +550,8 @@ export function CandidateInterviewPage() {
       }
 
       const data = await res.json();
-      const newQuestions = Array.isArray(data.questions) ? data.questions : [];
 
-      setConfig(prevConfig => {
-        if (prevConfig) {
-          prevQuestionsRef.current = prevConfig.questions;
-        }
-        return {
-          ...data,
-          questions: newQuestions,
-        };
-      });
+      setConfig(data);
       setConfigLoaded(true);
 
       if (!force) setError(null);
@@ -576,48 +566,48 @@ export function CandidateInterviewPage() {
   // ==========================================
   // EFFECTS
   // ==========================================
-  
+
   // [NEW] Fetch LiveKit Token when config is ready (Updated with Auth)
   useEffect(() => {
-    if (!interviewId || !config) return; 
-    
+    if (!interviewId || !config) return;
+
     const fetchToken = async () => {
       try {
         // 1. Extract Token from LocalStorage
         let token = '';
         const authData = localStorage.getItem('auth');
         if (authData) {
-            try {
-                const parsed = JSON.parse(authData);
-                token = parsed.token;
-            } catch(e) {}
+          try {
+            const parsed = JSON.parse(authData);
+            token = parsed.token;
+          } catch (e) { }
         }
 
-        const headers: Record<string, string> = { 
-            'Content-Type': 'application/json' 
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
         };
-        
+
         // 2. Add Authorization Header if token exists
         if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+          headers['Authorization'] = `Bearer ${token}`;
         }
 
         const res = await fetch(`${API_BASE}/api/livekit/token`, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify({ 
-             room: interviewId, 
-             username: config.candidateName || 'Candidate', 
-             role: 'candidate' 
+          body: JSON.stringify({
+            room: interviewId,
+            username: config.candidateName || 'Candidate',
+            role: 'candidate'
           })
         });
 
         if (!res.ok) throw new Error(`Status ${res.status}`);
-        
+
         const data = await res.json();
         setLiveKitToken(data.token);
         setLiveKitUrl(data.url);
-      } catch(e) { console.error("LiveKit connection failed", e); }
+      } catch (e) { console.error("LiveKit connection failed", e); }
     };
     fetchToken();
   }, [interviewId, config]);
@@ -633,35 +623,40 @@ export function CandidateInterviewPage() {
   }, [hiddenQuestionIds, interviewId]);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => { }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Polling Mechanism
+  // Safety timeout for "Analyzing" state
   useEffect(() => {
-    let pollTimer: number;
-
+    let timeout: any;
     if (isProcessing) {
-      console.log("Waiting for follow-up generation (polling)...");
-      pollTimer = window.setInterval(async () => {
-        await fetchConfig(true);
-      }, 2000);
+      console.log("⏱️ [TIMEOUT] Started 15s safety timer for 'Analyzing' state");
+      timeout = setTimeout(() => {
+        console.warn("⚠️ [TIMEOUT] Safety triggered: Forcing isProcessing to false");
+        setIsProcessing(false);
+      }, 15000);
     }
-
-    return () => {
-      if (pollTimer) clearInterval(pollTimer);
-    };
-  }, [isProcessing, fetchConfig]);
+    return () => clearTimeout(timeout);
+  }, [isProcessing]);
 
 
   // [UPDATED] Detect follow-up questions with Audio/Text Sync
   useEffect(() => {
-    if (!config || prevQuestionsRef.current.length === 0) return;
+    if (!config) return;
 
     const currentQuestions = config.questions;
+
+    // 1. Initialization: If prevQuestions is empty, initialize it and return
+    if (prevQuestionsRef.current.length === 0) {
+      console.log("Initial questions loaded. Setting reference.");
+      prevQuestionsRef.current = currentQuestions;
+      return;
+    }
+
     const prevQuestions = prevQuestionsRef.current;
 
-    // 1. Detection: Question List Grew (New Question Inserted)
+    // 2. Detection: Question List Grew (New Question Inserted)
     if (currentQuestions.length > prevQuestions.length) {
       console.log("New questions detected. Checking for follow-up insertion...");
       const potentialNextIndex = currentIndex + 1;
@@ -680,17 +675,14 @@ export function CandidateInterviewPage() {
           // Move to next question, but KEEP isProcessing=true to hide text initially
           setCurrentIndex(potentialNextIndex);
 
-          // Remove the setTimeout. Fetch audio immediately.
-          // Reveal text only after audio starts playing/loading.
+          // Fetch audio immediately.
           speakQuestion(nextQuestion.text).finally(() => {
             setIsProcessing(false);
           });
-
-          prevQuestionsRef.current = currentQuestions;
         }
       }
     }
-    // 2. Detection: Question List Same Length (Replacement)
+    // 3. Detection: Question List Same Length (Replacement)
     else if (currentQuestions.length === prevQuestions.length) {
       const currentQ = currentQuestions[currentIndex];
       const prevQ = prevQuestions[currentIndex];
@@ -702,10 +694,11 @@ export function CandidateInterviewPage() {
         speakQuestion(currentQ.text).finally(() => {
           setIsProcessing(false);
         });
-
-        prevQuestionsRef.current = currentQuestions;
       }
     }
+
+    // Always update ref at the end of detection logic
+    prevQuestionsRef.current = currentQuestions;
   }, [config, currentIndex, speakQuestion]);
 
   const currentQuestionId = config?.questions[currentIndex]?.id;
@@ -1386,7 +1379,7 @@ export function CandidateInterviewPage() {
                               console.log("Upload complete. Path B disabled, skipping poll.");
                               setIsProcessing(true);
                               const filler = getRandomFiller();
-                              speakQuestion(filler);                     
+                              speakQuestion(filler);
                             }}
                           />
 

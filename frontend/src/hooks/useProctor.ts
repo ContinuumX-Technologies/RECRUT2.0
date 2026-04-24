@@ -130,7 +130,7 @@ export function useProctor(
 
   // Electron lockdown integration: listen to app-level blur/focus
   function setupLockdownListeners() {
-    if (!window.lockdown) return () => {};
+    if (!window.lockdown) return () => { };
 
     const blurHandler = () => {
       // Electron window lost focus -> user tried to switch app
@@ -152,7 +152,7 @@ export function useProctor(
     window.lockdown.onBlur(blurHandler);
     window.lockdown.onFocus(focusHandler);
 
-    return () => {};
+    return () => { };
   }
 
   // 🔴 NEW: continuous webcam video recording with self-contained chunks

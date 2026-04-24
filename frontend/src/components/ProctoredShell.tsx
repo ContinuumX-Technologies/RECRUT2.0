@@ -43,6 +43,7 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
   });
 
   const [gazeWarning, setGazeWarning] = useState(false);
+  const [faceWarning, setFaceWarning] = useState(false);
 
   const incrementViolation = useCallback(
     async (reason: string) => {
@@ -74,8 +75,8 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
     [interviewId]
   );
 
-  // ----------- EYE / GAZE TRACKING -----------
-  const { supported, ready, isAway } = useGazeTracker({
+  // ----------- EYE / GAZE / FACE TRACKING -----------
+  const { supported, ready } = useGazeTracker({
     interviewId,
     enabled: started && !state.locked, // only track when interview running
     minAwayDurationMs: 4000,           // 4 seconds continuous away before flag
@@ -84,13 +85,21 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
     marginPx: 80,                      // generous safe zone around calibration
     onAwayChange: (away) => {
       setGazeWarning(away);
-
       if (away) {
         // Only fires on transition false -> true
         incrementViolation('GAZE_AWAY');
         sendEvent(interviewId, 'GAZE_AWAY_START', {});
       } else {
         sendEvent(interviewId, 'GAZE_AWAY_END', {});
+      }
+    },
+    onFaceChange: (missing) => {
+      setFaceWarning(missing);
+      if (missing) {
+        incrementViolation('FACE_MISSING');
+        sendEvent(interviewId, 'FACE_MISSING_START', {});
+      } else {
+        sendEvent(interviewId, 'FACE_MISSING_END', {});
       }
     },
   });
@@ -283,11 +292,11 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
         {children}
       </div>
 
-      {/* GAZE WARNING BANNER (only when away, not locked, and UI is active) */}
-      {gazeWarning && !showOverlay && !state.locked && (
-        <div className="fixed top-0 left-0 w-full z-40">
-          <div className="h-1 bg-red-600 shadow-[0_0_20px_rgba(220,38,38,1)]" />
-          <div className="max-w-md mx-auto mt-3 px-4 py-3 bg-red-900/90 border border-red-500/70 rounded-lg shadow-xl flex items-center gap-3">
+      {/* WARNING BANNERS (z-index ensure they are above content) */}
+      <div className="fixed top-0 left-0 w-full z-40 pointer-events-none">
+        {/* GAZE WARNING */}
+        {gazeWarning && !showOverlay && !state.locked && (
+          <div className="max-w-md mx-auto mt-3 px-4 py-3 bg-red-900/90 border border-red-500/70 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
             <span className="text-2xl">⚠️</span>
             <div className="text-sm">
               <p className="font-semibold text-red-100">
@@ -298,8 +307,23 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children }) => {
               </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* FACE MISSING WARNING */}
+        {faceWarning && !showOverlay && !state.locked && (
+          <div className="max-w-md mx-auto mt-3 px-4 py-3 bg-red-900/90 border border-red-500/70 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+            <span className="text-2xl">👤</span>
+            <div className="text-sm">
+              <p className="font-semibold text-red-100">
+                Face not detected
+              </p>
+              <p className="text-xs text-red-200 mt-1">
+                Ensure your face is clearly visible to the camera.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* OVERLAY WHEN NOT FULLSCREEN / NOT FOCUSED / LOCKED */}
       {showOverlay && (

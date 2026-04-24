@@ -18,7 +18,7 @@ type CandidateInterview = {
     role: string;
     level: string;
   } | null;
-  hasResume?: boolean; 
+  hasResume?: boolean;
 };
 
 type PlacementDrive = {
@@ -38,91 +38,91 @@ type PlacementDrive = {
 const Icons = {
   Sparkles: () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 3l1.09 3.41L16.5 7.5l-3.41 1.09L12 12l-1.09-3.41L7.5 7.5l3.41-1.09L12 3zm6.5 9l.72 2.28L21.5 15l-2.28.72-.72 2.28-.72-2.28L15.5 15l2.28-.72.72-2.28zM5.5 15l.72 2.28L8.5 18l-2.28.72-.72 2.28-.72-2.28L2.5 18l2.28-.72.72-2.28z"/>
+      <path d="M12 3l1.09 3.41L16.5 7.5l-3.41 1.09L12 12l-1.09-3.41L7.5 7.5l3.41-1.09L12 3zm6.5 9l.72 2.28L21.5 15l-2.28.72-.72 2.28-.72-2.28L15.5 15l2.28-.72.72-2.28zM5.5 15l.72 2.28L8.5 18l-2.28.72-.72 2.28-.72-2.28L2.5 18l2.28-.72.72-2.28z" />
     </svg>
   ),
   Calendar: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   Clock: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <polyline points="12,6 12,12 16,14"/>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12,6 12,12 16,14" />
     </svg>
   ),
   ChevronRight: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9,18 15,12 9,6"/>
+      <polyline points="9,18 15,12 9,6" />
     </svg>
   ),
   LogOut: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16,17 21,12 16,7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16,17 21,12 16,7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   ),
   Briefcase: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
     </svg>
   ),
   Play: () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M8 5v14l11-7z"/>
+      <path d="M8 5v14l11-7z" />
     </svg>
   ),
   CheckCircle: () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
     </svg>
   ),
   AlertCircle: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
   ),
   Hash: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="4" y1="9" x2="20" y2="9"/>
-      <line x1="4" y1="15" x2="20" y2="15"/>
-      <line x1="10" y1="3" x2="8" y2="21"/>
-      <line x1="16" y1="3" x2="14" y2="21"/>
+      <line x1="4" y1="9" x2="20" y2="9" />
+      <line x1="4" y1="15" x2="20" y2="15" />
+      <line x1="10" y1="3" x2="8" y2="21" />
+      <line x1="16" y1="3" x2="14" y2="21" />
     </svg>
   ),
   Video: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="23 7 16 12 23 17 23 7"/>
-      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      <polygon points="23 7 16 12 23 17 23 7" />
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
     </svg>
   ),
   FileText: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14,2 14,8 20,8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10,9 9,9 8,9"/>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14,2 14,8 20,8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10,9 9,9 8,9" />
     </svg>
   ),
   Upload: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/>
-      <line x1="12" y1="3" x2="12" y2="15"/>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
   ),
   Search: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
   )
 };
@@ -195,7 +195,7 @@ const EmptyState = ({ message }: { message?: string }) => (
 const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
@@ -208,7 +208,7 @@ const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
   // Handle Resume Upload
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    
+
     const file = e.target.files[0];
     setUploading(true);
     setUploadStatus('idle');
@@ -234,7 +234,7 @@ const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
 
       setUploadStatus('success');
       setStatusMsg('Resume uploaded!');
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setUploadStatus('idle');
@@ -348,7 +348,7 @@ const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
         <span className="candidate-card__id">
           ID: {interview.id.slice(0, 8)}...
         </span>
-        
+
         <div className="candidate-card__actions">
           {/* Resume Upload Button (Visible for scheduled/ongoing) */}
           {isJoinable && (
@@ -360,7 +360,7 @@ const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
                 accept=".pdf"
                 onChange={handleFileChange}
               />
-              <button 
+              <button
                 className="candidate-btn candidate-btn--secondary"
                 onClick={triggerUpload}
                 disabled={uploading}
@@ -397,19 +397,86 @@ const InterviewCard = ({ interview }: { interview: CandidateInterview }) => {
 };
 
 // ============================================
+// PLACEMENT DRIVE CARD
+// ============================================
+
+const PlacementDriveCard = ({ drive, onApply }: { drive: PlacementDrive; onApply: (id: string) => void }) => {
+  const getTierClass = (tier: string) => {
+    switch (tier) {
+      case 'Super Dream': return 'drive-card--super-dream';
+      case 'Dream': return 'drive-card--dream';
+      default: return 'drive-card--regular';
+    }
+  };
+
+  return (
+    <div className={`drive-card ${getTierClass(drive.tier)}`}>
+      <div className="drive-card__glass-content">
+        <div className="drive-card__header">
+          <div className="drive-card__icon-box">
+            <Icons.Briefcase />
+          </div>
+          <span className="drive-card__tier">{drive.tier}</span>
+        </div>
+
+        <div className="drive-card__company-group">
+          <h3 className="drive-card__company">{drive.companyName}</h3>
+        </div>
+
+        <div className="drive-card__ctc-group">
+          <p className="drive-card__ctc-label">Expected CTC</p>
+          <p className="drive-card__ctc-value">₹{drive.ctc} LPA</p>
+        </div>
+
+        <div className="drive-card__info-grid">
+          <div className="drive-card__info-item">
+            <span className="drive-card__info-label">
+              <Icons.Calendar /> Date
+            </span>
+            <span className="drive-card__info-value">
+              {new Date(drive.driveDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </span>
+          </div>
+          <div className="drive-card__info-item">
+            <span className="drive-card__info-label">
+              <Icons.Clock /> Slot
+            </span>
+            <span className="drive-card__info-value">{drive.slot}</span>
+          </div>
+        </div>
+
+        <div className="drive-card__footer">
+          <button
+            className="drive-card__apply-btn"
+            onClick={() => onApply(drive.id)}
+          >
+            <span>Apply to Drive</span>
+            <Icons.ChevronRight />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
 export function CandidateDashboardPage() {
   const { user, token, logout } = useAuth();
-  
+
   // TABS STATE
   const [activeTab, setActiveTab] = useState<'interviews' | 'drives'>('interviews');
 
   // DATA STATE
   const [interviews, setInterviews] = useState<CandidateInterview[]>([]);
   const [drives, setDrives] = useState<PlacementDrive[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -422,17 +489,17 @@ export function CandidateDashboardPage() {
       setError(null);
       try {
         if (activeTab === 'interviews') {
-           const res = await fetch(`${API_BASE}/api/me/interviews`, {
-             headers: { Authorization: `Bearer ${token}` },
-           });
-           if (!res.ok) throw new Error('Failed to load interviews');
-           setInterviews(await res.json());
+          const res = await fetch(`${API_BASE}/api/me/interviews`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error('Failed to load interviews');
+          setInterviews(await res.json());
         } else {
-           const res = await fetch(`${API_BASE}/api/candidate/drives`, {
-             headers: { Authorization: `Bearer ${token}` },
-           });
-           if (!res.ok) throw new Error('Failed to load drives');
-           setDrives(await res.json());
+          const res = await fetch(`${API_BASE}/api/candidate/drives`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error('Failed to load drives');
+          setDrives(await res.json());
         }
       } catch (e: any) {
         console.error('Error loading data', e);
@@ -446,23 +513,23 @@ export function CandidateDashboardPage() {
   }, [token, activeTab]);
 
   const handleApplyToDrive = async (outreachId: string) => {
-      if(!token) return;
-      if(!confirm("Are you sure you want to apply? Your profile and resume will be sent to the company.")) return;
+    if (!token) return;
+    if (!confirm("Are you sure you want to apply? Your profile and resume will be sent to the company.")) return;
 
-      try {
-          const res = await fetch(`${API_BASE}/api/candidate/apply/${outreachId}`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if(res.ok) {
-              alert(data.message || "Application successful!");
-          } else {
-              alert(data.error || "Failed to apply.");
-          }
-      } catch(e) {
-          alert("Network error.");
+    try {
+      const res = await fetch(`${API_BASE}/api/candidate/apply/${outreachId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || "Application successful!");
+      } else {
+        alert(data.error || "Failed to apply.");
       }
+    } catch (e) {
+      alert("Network error.");
+    }
   };
 
   // Separate interviews by status
@@ -502,20 +569,20 @@ export function CandidateDashboardPage() {
           </div>
 
           <div className="candidate-nav__center">
-             <div className="candidate-nav__tabs">
-                <button 
-                  onClick={() => setActiveTab('interviews')}
-                  className={`candidate-nav__tab ${activeTab === 'interviews' ? 'candidate-nav__tab--active' : ''}`}
-                >
-                    <Icons.Briefcase /> My Interviews
-                </button>
-                <button 
-                  onClick={() => setActiveTab('drives')}
-                  className={`candidate-nav__tab ${activeTab === 'drives' ? 'candidate-nav__tab--active' : ''}`}
-                >
-                    <Icons.Search /> Placement Drives
-                </button>
-             </div>
+            <div className="candidate-nav__tabs">
+              <button
+                onClick={() => setActiveTab('interviews')}
+                className={`candidate-nav__tab ${activeTab === 'interviews' ? 'candidate-nav__tab--active' : ''}`}
+              >
+                <Icons.Briefcase /> My Interviews
+              </button>
+              <button
+                onClick={() => setActiveTab('drives')}
+                className={`candidate-nav__tab ${activeTab === 'drives' ? 'candidate-nav__tab--active' : ''}`}
+              >
+                <Icons.Search /> Placement Drives
+              </button>
+            </div>
           </div>
 
           <div className="candidate-nav__right">
@@ -547,7 +614,7 @@ export function CandidateDashboardPage() {
                 Welcome, {user.name.split(' ')[0]}!
               </h2>
               <p className="candidate-welcome__text">
-                {activeTab === 'interviews' 
+                {activeTab === 'interviews'
                   ? "Here is your interview schedule."
                   : "Explore and apply to upcoming placement drives."
                 }
@@ -555,15 +622,15 @@ export function CandidateDashboardPage() {
             </div>
             {/* Conditional Stats */}
             {activeTab === 'interviews' && (
-                <div className="candidate-welcome__stats">
-                    <div className="candidate-stat-card">
-                        <div className="candidate-stat-card__icon candidate-stat-card__icon--blue"><Icons.Calendar /></div>
-                        <div className="candidate-stat-card__content">
-                            <span className="candidate-stat-card__value">{upcomingInterviews.length}</span>
-                            <span className="candidate-stat-card__label">Upcoming</span>
-                        </div>
-                    </div>
+              <div className="candidate-welcome__stats">
+                <div className="candidate-stat-card">
+                  <div className="candidate-stat-card__icon candidate-stat-card__icon--blue"><Icons.Calendar /></div>
+                  <div className="candidate-stat-card__content">
+                    <span className="candidate-stat-card__value">{upcomingInterviews.length}</span>
+                    <span className="candidate-stat-card__label">Upcoming</span>
+                  </div>
                 </div>
+              </div>
             )}
           </section>
 
@@ -573,94 +640,58 @@ export function CandidateDashboardPage() {
 
           {/* --- TAB 1: MY INTERVIEWS --- */}
           {!loading && !error && activeTab === 'interviews' && (
-             <>
-                {interviews.length === 0 && <EmptyState />}
-                
-                {upcomingInterviews.length > 0 && (
-                    <section className="candidate-section">
-                    <div className="candidate-section__header">
-                        <h2 className="candidate-section__title">
-                        <span className="candidate-section__icon candidate-section__icon--blue"><Icons.Calendar /></span>
-                        Upcoming
-                        </h2>
-                    </div>
-                    <div className="candidate-section__grid">
-                        {upcomingInterviews.map(interview => (
-                        <InterviewCard key={interview.id} interview={interview} />
-                        ))}
-                    </div>
-                    </section>
-                )}
+            <>
+              {interviews.length === 0 && <EmptyState />}
 
-                {pastInterviews.length > 0 && (
-                    <section className="candidate-section">
-                    <div className="candidate-section__header">
-                        <h2 className="candidate-section__title">
-                        <span className="candidate-section__icon candidate-section__icon--gray"><Icons.Clock /></span>
-                        History
-                        </h2>
-                    </div>
-                    <div className="candidate-section__grid">
-                        {pastInterviews.map(interview => (
-                        <InterviewCard key={interview.id} interview={interview} />
-                        ))}
-                    </div>
-                    </section>
-                )}
-             </>
+              {upcomingInterviews.length > 0 && (
+                <section className="candidate-section">
+                  <div className="candidate-section__header">
+                    <h2 className="candidate-section__title">
+                      <span className="candidate-section__icon candidate-section__icon--blue"><Icons.Calendar /></span>
+                      Upcoming
+                    </h2>
+                  </div>
+                  <div className="candidate-section__grid">
+                    {upcomingInterviews.map(interview => (
+                      <InterviewCard key={interview.id} interview={interview} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {pastInterviews.length > 0 && (
+                <section className="candidate-section">
+                  <div className="candidate-section__header">
+                    <h2 className="candidate-section__title">
+                      <span className="candidate-section__icon candidate-section__icon--gray"><Icons.Clock /></span>
+                      History
+                    </h2>
+                  </div>
+                  <div className="candidate-section__grid">
+                    {pastInterviews.map(interview => (
+                      <InterviewCard key={interview.id} interview={interview} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
           )}
 
           {/* --- TAB 2: PLACEMENT DRIVES --- */}
           {!loading && !error && activeTab === 'drives' && (
-             <>
-               {drives.length === 0 && <EmptyState message="No placement drives are currently open for applications." />}
-               
-               <div className="candidate-section__grid">
-                   {drives.map(drive => (
-                       <div key={drive.id} className="candidate-card" style={{ borderTop: `4px solid ${drive.tier === 'Super Dream' ? '#ec4899' : '#3b82f6'}` }}>
-                           <div className="candidate-card__header">
-                               <div className="candidate-card__title-group">
-                                    <h3 className="candidate-card__title" style={{ fontSize: '1.25rem' }}>{drive.companyName}</h3>
-                                    <span className="candidate-card__role" style={{ color: drive.tier === 'Super Dream' ? '#ec4899' : '#3b82f6', fontWeight: 'bold' }}>
-                                        {drive.tier}
-                                    </span>
-                               </div>
-                               <div className="candidate-card__icon" style={{ background: '#f1f5f9' }}>
-                                   <Icons.Briefcase />
-                               </div>
-                           </div>
+            <>
+              {drives.length === 0 && <EmptyState message="No placement drives are currently open for applications." />}
 
-                           <div className="candidate-card__details" style={{ marginTop: '1rem' }}>
-                               <div className="candidate-card__detail">
-                                   <span className="candidate-card__detail-value" style={{ fontSize: '1.5rem', fontWeight: 'bold', color:'#334155' }}>
-                                       ₹{drive.ctc} LPA
-                                   </span>
-                               </div>
-                               <div className="candidate-card__detail">
-                                   <span className="candidate-card__detail-icon"><Icons.Calendar /></span>
-                                   <span className="candidate-card__detail-label">Date:</span>
-                                   <span className="candidate-card__detail-value">{new Date(drive.driveDate).toLocaleDateString()}</span>
-                               </div>
-                               <div className="candidate-card__detail">
-                                   <span className="candidate-card__detail-icon"><Icons.Clock /></span>
-                                   <span className="candidate-card__detail-label">Slot:</span>
-                                   <span className="candidate-card__detail-value">{drive.slot}</span>
-                               </div>
-                           </div>
-
-                           <div className="candidate-card__footer">
-                               <button 
-                                 className="candidate-btn candidate-btn--primary" 
-                                 style={{ width: '100%', justifyContent: 'center' }}
-                                 onClick={() => handleApplyToDrive(drive.id)}
-                               >
-                                   Apply Now <Icons.ChevronRight />
-                               </button>
-                           </div>
-                       </div>
-                   ))}
-               </div>
-             </>
+              <div className="candidate-section__grid">
+                {drives.map(drive => (
+                  <PlacementDriveCard
+                    key={drive.id}
+                    drive={drive}
+                    onApply={handleApplyToDrive}
+                  />
+                ))}
+              </div>
+            </>
           )}
 
         </div>

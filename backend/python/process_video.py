@@ -211,6 +211,23 @@ def process_video():
             if eye_reflection_score(frame, lm, w, h) > REFLECTION_THRESHOLD:
                 stats["reflection_hits"] += 1
 
+            # ---- Face Recognition (Identity Sync) ----
+            if known_face is not None:
+                # We use the already converted RGB frame
+                # For performance, we only check the first face found
+                face_locations = face_recognition.face_locations(rgb)
+                if face_locations:
+                    face_encodings = face_recognition.face_encodings(rgb, face_locations)
+                    if face_encodings:
+                        match = face_recognition.compare_faces([known_face], face_encodings[0], tolerance=0.6)
+                        if not match[0]:
+                            stats["face_mismatch"] += 1
+                else:
+                    # Mediapipe found landmarks, but face_recognition didn't find the face.
+                    # This can happen with extreme angles. We don't count it as mismatch yet
+                    # unless it persists. For now, we just skip.
+                    pass
+
         # ---- Optical Flow (AirSpace) ----
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if prev_gray is not None:
@@ -238,6 +255,7 @@ def process_video():
             "multi_face": stats["multi_face"]/total,
             "hand_motion": stats["hand_motion"]/total,
             "reflection": stats["reflection_hits"]/total,
+            "face_mismatch": stats["face_mismatch"]/total,
         }
     }
 
@@ -256,6 +274,16 @@ def process_video():
         ev("proctor_airspace","Out-of-frame hand activity","warning")
     if eye_intent in ("memorized_answer","reading_or_searching"):
         ev("proctor_eye_intent",f"Eye intent: {eye_intent}","info")
+
+    if known_face is not None:
+        if summary["ratios"]["face_mismatch"] > FACE_MISMATCH_THRESHOLD:
+            ev("proctor_face_mismatch", "Identity mismatch detected (Doesn't match reference photo)", "critical")
+        else:
+            # Info level if there's *any* mismatch but below threshold
+            if summary["ratios"]["face_mismatch"] > 0.02:
+                 ev("proctor_face_verified", "Identity verified (Minor fluctuations)", "info")
+            else:
+                 ev("proctor_face_verified", "Identity verified successfully", "info")
 
     original_stdout.write(json.dumps({"summary":summary,"events":events}))
     original_stdout.flush()

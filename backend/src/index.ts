@@ -1036,7 +1036,7 @@ app.post('/api/voice/synthesize', async (req: Request, res: Response) => {
 // 1. CREATE LEAD & AUTO-CLASSIFY TIER
 app.post('/api/college/outreach', authMiddleware, requireRole('COLLEGE'), async (req: AuthRequest, res: Response) => {
   const { companyName, email, contactPerson, ctc } = req.body;
-  
+
   // VIT Logic: Auto-assign Tier based on CTC
   let tier = 'Regular';
   if (ctc >= 10) tier = 'Super Dream';
@@ -1076,7 +1076,7 @@ app.get('/api/college/outreach', authMiddleware, requireRole('COLLEGE'), async (
 // 3. FINALIZE SLOT & ONBOARD (Generate Login)
 app.post('/api/college/outreach/:id/onboard', authMiddleware, requireRole('COLLEGE'), async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { slot, driveDate } = req.body; 
+  const { slot, driveDate } = req.body;
 
   try {
     const record = await prisma.companyOutreach.findUnique({ where: { id } });
@@ -1084,13 +1084,13 @@ app.post('/api/college/outreach/:id/onboard', authMiddleware, requireRole('COLLE
 
     // A. Generate Credentials
     const generatedPassword = Math.random().toString(36).slice(-8);
-    
+
     // [FIX START] Hash password and create user
     const passwordHash = await hashPassword(generatedPassword);
 
     // Check if user already exists to avoid unique constraint errors
     const existingUser = await prisma.user.findUnique({ where: { email: record.email } });
-    
+
     if (!existingUser) {
       await prisma.user.create({
         data: {
@@ -1116,10 +1116,10 @@ app.post('/api/college/outreach/:id/onboard', authMiddleware, requireRole('COLLE
         status: 'scheduled',
         slot,
         driveDate: new Date(driveDate),
-        timeline: [...(record.timeline as any[] || []), { 
-          date: new Date().toISOString(), 
-          title: 'Slot Allocated', 
-          description: `Assigned ${slot} on ${driveDate}` 
+        timeline: [...(record.timeline as any[] || []), {
+          date: new Date().toISOString(),
+          title: 'Slot Allocated',
+          description: `Assigned ${slot} on ${driveDate}`
         }]
       }
     });
@@ -1143,9 +1143,9 @@ app.get('/api/candidate/drives', authMiddleware, requireRole('CANDIDATE'), async
 
 // 5. STUDENT PORTAL: APPLY FOR DRIVE
 app.post('/api/candidate/apply/:outreachId', authMiddleware, requireRole('CANDIDATE'), async (req: AuthRequest, res: Response) => {
-    // In a real app, this would check eligibility (CGPA vs Cutoff)
-    // and create an 'Interview' record linked to the company's template
-    res.json({ success: true, message: "Applied successfully. Check dashboard for schedule." });
+  // In a real app, this would check eligibility (CGPA vs Cutoff)
+  // and create an 'Interview' record linked to the company's template
+  res.json({ success: true, message: "Applied successfully. Check dashboard for schedule." });
 });
 
 // 6. Add a timeline event (Log interaction)
