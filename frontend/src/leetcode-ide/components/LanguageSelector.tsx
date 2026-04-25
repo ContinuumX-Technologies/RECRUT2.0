@@ -1,4 +1,4 @@
-import React from "react";
+
 import { LANGUAGES } from "../constants/languages";
 
 type Props = {

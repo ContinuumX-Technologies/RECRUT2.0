@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 interface AudioVisualizerProps {
     onRecordingStart?: () => void;
@@ -51,7 +50,8 @@ export default function AudioVisualizerCard({
     const [permissionGranted, setPermissionGranted] = useState(false);
     const [permissionDenied, setPermissionDenied] = useState(false);
     const [isInitializing, setIsInitializing] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isUploading] = useState(false);
+
 
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -128,7 +128,8 @@ export default function AudioVisualizerCard({
     }, []);
 
     // Helper to upload audio
-    const uploadAudio = async (blob: Blob, mimeType: string) => {
+    const uploadAudio = async (_blob: Blob, _mimeType: string) => {
+
         // [DISABLED] Stop upload to backend as requested
         /*
         if (!interviewId) return;

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LiveInterviewMonitor } from '../components/LiveInterviewMonitor';
 import './AdminDashboardPage.css';
@@ -83,7 +83,7 @@ type CandidateUser = {
   candidateId?: string | null;
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 // ============================================
 // ICON COMPONENTS
@@ -324,9 +324,11 @@ export function AdminDashboardPage() {
 
   // Modals
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [, setDeleting] = useState(false);
+
   const [templateDeleteConfirm, setTemplateDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
-  const [templateDeleting, setTemplateDeleting] = useState(false);
+  const [, setTemplateDeleting] = useState(false);
+
 
   // --- Effects ---
   useEffect(() => {
@@ -731,9 +733,7 @@ export function AdminDashboardPage() {
   };
 
   // Memoized values
-  const upcomingInterviews = useMemo(() =>
-    interviews.filter(i => i.status === 'scheduled').length, [interviews]);
-  const totalTemplates = useMemo(() => templates.length, [templates]);
+
 
   // Handle unauthorized access
   if (!user || user.role !== 'INTERVIEWER') {
