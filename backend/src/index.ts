@@ -21,11 +21,11 @@ import {
 } from './lib/auth';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import aiRoutes from "../src/routes/aiQuestion.routes";
-import judgeRoutes from "../src/routes/judge.routes";
-import verifyRoutes from "../src/routes/verify.routes";
-import previewRoutes from "../src/routes/preview.routes";
-import livekitRoutes from "../src/routes/livekit.routes";
+import aiRoutes from "./routes/aiQuestion.routes";
+import judgeRoutes from "./routes/judge.routes";
+import verifyRoutes from "./routes/verify.routes";
+import previewRoutes from "./routes/preview.routes";
+import livekitRoutes from "./routes/livekit.routes";
 import crypto from 'crypto';
 
 const execAsync = promisify(exec);
