@@ -151,11 +151,19 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl">
-      <div className="w-full max-w-md">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-950/90 sm:bg-slate-950/80 backdrop-blur-xl sm:overflow-hidden perspective-1000">
+      <div className="w-full sm:max-w-md h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col bg-slate-900 border-t sm:border border-slate-700/50 sm:rounded-3xl shadow-2xl shadow-indigo-500/10 overflow-hidden ring-1 ring-white/5 relative">
         
-        {/* Header Indicator */}
-        <div className="flex justify-center mb-6">
+        {/* Mobile Handle (Optional) */}
+        <div className="w-full h-1.5 flex justify-center pt-3 pb-5 sm:hidden shrink-0">
+           <div className="w-12 h-1.5 bg-slate-700 rounded-full" />
+        </div>
+
+        {/* Inner Scrollable Container */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 flex flex-col">
+          
+          {/* Header Indicator */}
+          <div className="flex justify-center mb-6 sm:mb-8 shrink-0">
           <div className="flex items-center gap-3 bg-slate-900/50 backdrop-blur-md px-6 py-2.5 rounded-full border border-slate-700/50 shadow-xl">
             <span className={`text-sm font-semibold transition-colors duration-500 ${step === 'face' ? 'text-emerald-400' : (step === 'done' ? 'text-slate-500' : 'text-slate-200')}`}>
               FaceID
@@ -168,8 +176,8 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
             </span>
           </div>
         </div>
-
-        <div className="relative bg-slate-900/80 backdrop-blur-2xl border border-slate-700/50 rounded-3xl p-8 shadow-2xl shadow-indigo-500/10 overflow-hidden ring-1 ring-white/5">
+        
+        <div className="flex-1 w-full flex flex-col">
           <AnimatePresence mode="wait">
             
             {/* STEP 1: FACE CAPTURE */}
@@ -179,10 +187,10 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
                   <ScanFace strokeWidth={1.5} size={28} />
                 </div>
                 
-                <h2 className="text-2xl font-semibold text-white mb-2 text-center tracking-tight">Identity Setup</h2>
-                <p className="text-slate-400 text-sm text-center mb-8 font-medium">Position your face within the frame to capture your reference photo.</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center tracking-tight">Identity Setup</h2>
+                <p className="text-slate-400 text-sm sm:text-base text-center mb-6 sm:mb-8 font-medium">Position your face within the frame to capture your reference photo.</p>
 
-                <div className="relative w-64 h-64 mx-auto mb-8 rounded-full overflow-hidden bg-slate-950 border-4 border-slate-800 shadow-inner group">
+                <div className="relative w-[60vw] max-w-[240px] aspect-square mx-auto mb-8 sm:mb-10 rounded-full overflow-hidden bg-slate-950 border-[3px] sm:border-4 border-slate-700 shadow-[0_0_40px_rgba(0,0,0,0.5)] shadow-inner group shrink-0">
                   {!stream ? (
                     <button 
                       onClick={startCamera} 
@@ -211,7 +219,7 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
                 <button 
                   onClick={capturePhoto} 
                   disabled={!stream || loading} 
-                  className="relative w-full py-3.5 bg-white text-slate-900 rounded-xl font-semibold hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-white transition-all overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)]"
+                  className="relative w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 transition-all overflow-hidden shadow-lg hover:shadow-emerald-500/30"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -230,10 +238,10 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
                   <Mic strokeWidth={1.5} size={28} />
                 </div>
                 
-                <h2 className="text-2xl font-semibold text-white mb-2 text-center tracking-tight">Voice Enrollment</h2>
-                <p className="text-slate-400 text-sm text-center mb-8 font-medium">Please read the consent phrase aloud clearly to register your voice footprint.</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 text-center tracking-tight">Voice Enrollment</h2>
+                <p className="text-slate-400 text-sm sm:text-base text-center mb-6 sm:mb-8 font-medium">Please read the consent phrase aloud clearly to register your voice footprint.</p>
 
-                <div className="w-full p-6 bg-slate-950/50 border border-slate-800/80 rounded-2xl mb-8 relative overflow-hidden">
+                <div className="w-full p-5 sm:p-6 bg-slate-950/50 border border-slate-800/80 rounded-2xl mb-8 relative overflow-hidden flex-1 flex flex-col justify-center min-h-[140px]">
                   <div className="absolute top-0 left-0 w-1 h-full bg-linear-to-b from-indigo-500 to-purple-500" />
                   <p className="text-sm font-semibold text-indigo-400/80 uppercase tracking-wider mb-3">Read aloud:</p>
                   <blockquote className="text-xl font-medium text-white italic leading-relaxed text-transparent bg-clip-text bg-linear-to-br from-white to-slate-400">
@@ -299,8 +307,8 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
                   <CheckCircle2 className="text-emerald-500 w-10 h-10" />
                 </motion.div>
                 
-                <h2 className="text-2xl font-bold text-white mb-3 tracking-tight">Identity Verified</h2>
-                <p className="text-slate-400 text-sm mb-10 leading-relaxed max-w-[280px]">
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight">Identity Verified</h2>
+                <p className="text-slate-400 text-sm sm:text-base mb-10 leading-relaxed max-w-[280px]">
                   Your biometric footprint is securely registered. The system is armed and ready for proctoring.
                 </p>
 
@@ -317,7 +325,8 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
               </motion.div>
             )}
 
-          </AnimatePresence>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
