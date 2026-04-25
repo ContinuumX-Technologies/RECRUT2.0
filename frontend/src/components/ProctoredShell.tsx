@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useGazeTracker } from '../hooks/useGazeTracker';
+import { useVisionProctor } from '../hooks/useVisionProctor';
 import type { ProctorAlert } from '../hooks/useProctorAlert';
+import { useRef } from 'react';
 
 type Props = {
   interviewId: string;
   children: React.ReactNode; // your interview questions UI
   proctorAlert?: ProctorAlert | null;
+  referenceFaceUrl?: string; // Local URL from BiometricSetup
 };
 
 type ProctorState = {
@@ -17,10 +19,11 @@ type ProctorState = {
 };
 
 const MAX_VIOLATIONS = 3; // after this, lock the test
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 async function sendEvent(interviewId: string, type: string, payload: any = {}) {
   try {
-    await fetch(`http://localhost:4000/api/interviews/${interviewId}/events`, {
+    await fetch(`${API_BASE}/api/interviews/${interviewId}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -34,8 +37,10 @@ async function sendEvent(interviewId: string, type: string, payload: any = {}) {
   }
 }
 
-export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctorAlert }) => {
+export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctorAlert, referenceFaceUrl }) => {
   const [started, setStarted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const [state, setState] = useState<ProctorState>({
     fullscreen: false,
     focused: true,
@@ -45,6 +50,7 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
 
   const [gazeWarning, setGazeWarning] = useState(false);
   const [faceWarning, setFaceWarning] = useState(false);
+  const [identityWarning, setIdentityWarning] = useState(false);
 
   const incrementViolation = useCallback(
     async (reason: string) => {
@@ -65,6 +71,8 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
           });
         }
 
+        console.info(`[Proctor] Violation Registered: ${reason} (Total: ${nextCount}/${MAX_VIOLATIONS})`);
+
         return {
           ...prev,
           violationCount: nextCount,
@@ -76,34 +84,71 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
     [interviewId]
   );
 
-  // ----------- EYE / GAZE / FACE TRACKING -----------
-  const { supported, ready } = useGazeTracker({
-    interviewId,
-    enabled: started && !state.locked, // only track when interview running
-    minAwayDurationMs: 4000,           // 4 seconds continuous away before flag
-    smoothingWindowMs: 800,            // smooth last 800ms
-    minConfidence: 0.6,
-    marginPx: 80,                      // generous safe zone around calibration
-    onAwayChange: (away) => {
-      setGazeWarning(away);
-      if (away) {
-        // Only fires on transition false -> true
-        incrementViolation('GAZE_AWAY');
-        sendEvent(interviewId, 'GAZE_AWAY_START', {});
-      } else {
-        sendEvent(interviewId, 'GAZE_AWAY_END', {});
-      }
-    },
-    onFaceChange: (missing) => {
-      setFaceWarning(missing);
-      if (missing) {
-        incrementViolation('FACE_MISSING');
-        sendEvent(interviewId, 'FACE_MISSING_START', {});
-      } else {
-        sendEvent(interviewId, 'FACE_MISSING_END', {});
+  // -------------------------------------------
+
+  // ----------- REAL-TIME VISION PROCTORING (MediaPipe) -----------
+  const { faceMatchScore, isLookingAway, isFaceMissing, modelsLoaded } = useVisionProctor({
+    enabled: started && !state.locked,
+    videoRef,
+    referenceImage: referenceFaceUrl,
+    onViolation: (type, data) => {
+      // deduplicate via state
+      if (type === 'MULTIPLE_FACES_DETECTED') {
+        incrementViolation('MULTIPLE_PEOPLE_DETECTED');
+      } else if (type === 'FORBIDDEN_OBJECT') {
+        incrementViolation(`FORBIDDEN_OBJECT_DETECTED: ${data.objects.join(', ')}`);
       }
     },
   });
+
+  // Safe deduction for Identity Mismatch
+  useEffect(() => {
+    if (faceMatchScore !== null) {
+      const mismatched = faceMatchScore < 0.7;
+      if (mismatched && !identityWarning) {
+        setIdentityWarning(true);
+        incrementViolation('IDENTITY_MISMATCH (Internal AI)');
+      } else if (!mismatched && identityWarning) {
+        setIdentityWarning(false);
+      }
+    }
+  }, [faceMatchScore, identityWarning]);
+
+  // Safe deduction for Gaze Away
+  useEffect(() => {
+    if (isLookingAway && !gazeWarning) {
+      setGazeWarning(true);
+      incrementViolation('GAZE_AWAY (Head Pose)');
+      sendEvent(interviewId, 'GAZE_AWAY_START', {});
+    } else if (!isLookingAway && gazeWarning) {
+      setGazeWarning(false);
+      sendEvent(interviewId, 'GAZE_AWAY_END', {});
+    }
+  }, [isLookingAway, gazeWarning, interviewId]);
+
+  // Safe deduction for Face Missing
+  useEffect(() => {
+    if (isFaceMissing && !faceWarning) {
+      setFaceWarning(true);
+      incrementViolation('FACE_MISSING');
+      sendEvent(interviewId, 'FACE_MISSING_START', {});
+    } else if (!isFaceMissing && faceWarning) {
+      setFaceWarning(false);
+      sendEvent(interviewId, 'FACE_MISSING_END', {});
+    }
+  }, [isFaceMissing, faceWarning, interviewId]);
+
+  // Sync hidden video stream
+  useEffect(() => {
+    if (started && !state.locked) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(e => console.warn('[Proctor] video play error', e));
+        }
+      });
+    }
+  }, [started, state.locked]);
   // -------------------------------------------
 
   const requestFullscreen = async () => {
@@ -265,18 +310,25 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
             </li>
           </ul>
 
-          {!supported && (
-            <p className="text-xs text-red-400 mb-2">
-              Eye tracking library not available. Your activity may be monitored
-              with limited features.
+          {!modelsLoaded ? (
+            <div className="flex items-center gap-2 mb-4 p-3 bg-indigo-900/40 rounded-lg border border-indigo-500/30">
+              <div className="w-4 h-4 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+              <p className="text-xs text-indigo-200">
+                Wait... AI proctoring engines are loading...
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-emerald-400 mb-4 flex items-center gap-2">
+              <span>✅</span> AI Proctoring Ready
             </p>
           )}
 
           <button
             onClick={requestFullscreen}
-            className="px-4 py-2 rounded-lg bg-emerald-600 text-sm font-medium hover:bg-emerald-500 transition-colors"
+            disabled={!modelsLoaded}
+            className="w-full px-4 py-3 rounded-lg bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-sm font-bold hover:bg-emerald-500 transition-all shadow-lg"
           >
-            I understand, start interview
+            {modelsLoaded ? 'I understand, start interview' : 'Initializing...'}
           </button>
         </div>
 
@@ -337,7 +389,40 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
             </div>
           </div>
         )}
+
+        {/* IDENTITY MISMATCH WARNING */}
+        {identityWarning && !showOverlay && !state.locked && (
+          <div className="max-w-md mx-auto mt-3 px-4 py-3 bg-red-900/90 border border-red-500/70 rounded-lg shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+            <span className="text-2xl">🆔</span>
+            <div className="text-sm">
+              <p className="font-semibold text-red-100">
+                Identity Mismatch
+              </p>
+              <p className="text-xs text-red-200 mt-1">
+                The face on camera does not match our records.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* HIDDEN PROCTORING FEED — must NOT use display:none or frames won't render */}
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: -1,
+        }}
+      />
 
       {/* OVERLAY WHEN NOT FULLSCREEN / NOT FOCUSED / LOCKED */}
       {showOverlay && (
@@ -376,10 +461,11 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
         </div>
       )}
 
-      {/* Optional tiny debug tag for gaze readiness */}
+      {/* Optional tiny debug tag for AI proctoring status */}
       {started && !state.locked && (
-        <div className="fixed bottom-2 right-2 text-[10px] text-slate-500 bg-slate-900/80 px-2 py-1 rounded border border-slate-700/60">
-          Gaze: {supported ? (ready ? 'active' : 'calibrating…') : 'unavailable'}
+        <div className="fixed bottom-2 right-2 text-[10px] text-slate-500 bg-slate-900/80 px-2 py-1 rounded border border-slate-700/60 flex items-center gap-1.5">
+          <div className={`w-1.5 h-1.5 rounded-full ${modelsLoaded ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 animate-pulse'}`} />
+          AI: {modelsLoaded ? 'active' : 'loading…'}
         </div>
       )}
     </div>

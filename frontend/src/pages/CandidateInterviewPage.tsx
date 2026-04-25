@@ -256,6 +256,7 @@ export function CandidateInterviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [setupComplete, setSetupComplete] = useState(false);
+  const [referenceFaceUrl, setReferenceFaceUrl] = useState<string>();
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -1127,7 +1128,10 @@ export function CandidateInterviewPage() {
     return (
       <BiometricSetup
         interviewId={interviewId}
-        onComplete={() => setSetupComplete(true)}
+        onComplete={(faceUrl) => {
+          setSetupComplete(true);
+          if (faceUrl) setReferenceFaceUrl(faceUrl);
+        }}
       />
     );
   }
@@ -1150,7 +1154,7 @@ export function CandidateInterviewPage() {
       data-lk-theme="default"
     >
       <RoomConnector />
-      <ProctoredShell interviewId={interviewId} proctorAlert={alert}>
+      <ProctoredShell interviewId={interviewId} proctorAlert={alert} referenceFaceUrl={referenceFaceUrl}>
         <div className="apple-interview">
           {/* ================================
               NAVIGATION BAR

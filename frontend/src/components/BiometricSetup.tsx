@@ -3,25 +3,14 @@ import { useState, useRef, useEffect } from 'react';
 
 type Props = {
   interviewId: string;
-  // UPDATED: Now accepts an optional faceUrl
   onComplete: (faceUrl?: string) => void;
 };
-
-declare global {
-  interface Window {
-    webgazer?: any;
-    localStream?: MediaStream;
-  }
-}
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 export function BiometricSetup({ interviewId, onComplete }: Props) {
-  const [step, setStep] = useState<'face' | 'voice' | 'calibration' | 'done'>('face');
+  const [step, setStep] = useState<'face' | 'voice' | 'done'>('face');
   const [loading, setLoading] = useState(false);
-  const [initializing, setInitializing] = useState(false); // NEW: specifically for WebGazer setup
-
-  // NEW: Store the captured face URL locally
   const [capturedFaceUrl, setCapturedFaceUrl] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -39,14 +28,12 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
   };
 
   useEffect(() => {
-    if (stream && (step === 'face' || step === 'calibration')) {
+    if (stream && step === 'face') {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
     }
 
-    // Stop camera if we move away from 'face' and aren't in 'calibration' yet
-    // WebGazer will start its own stream later.
     if (stream && step === 'voice') {
       stream.getTracks().forEach(t => t.stop());
       setStream(null);
@@ -71,7 +58,6 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
       async (blob) => {
         if (!blob) return;
 
-        // NEW: Create local URL for immediate use in ProctorShell
         const url = URL.createObjectURL(blob);
         setCapturedFaceUrl(url);
 
@@ -125,12 +111,7 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
         }
 
         s.getTracks().forEach((t) => t.stop());
-        if (stream) {
-          stream.getTracks().forEach((t) => t.stop());
-          setStream(null);
-        }
-
-        setStep('calibration');
+        setStep('done');
       };
 
       mediaRecorder.current.start();
@@ -141,120 +122,9 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
   };
 
   const stopRecording = () => {
-    mediaRecorder.current?.stop();
-    setRecording(false);
-  };
-
-  // --- CALIBRATION ---
-  const [calibPoints, setCalibPoints] = useState(0);
-  const [calibReady, setCalibReady] = useState(false);
-  const [samples, setSamples] = useState<{ x: number; y: number }[]>([]);
-
-  useEffect(() => {
-    if (step !== 'calibration') return;
-    if (!window.webgazer) {
-      alert('Eye tracking library failed to load.');
-      return;
-    }
-
-    let cancelled = false;
-    const initWebGazer = async () => {
-      setInitializing(true);
-      try {
-        if (cancelled) return;
-
-        // 1. Force stop any tracks left from the previous capture/voice steps
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-          setStream(null);
-        }
-
-        // 2. Clear any old state
-        await window.webgazer.pause();
-        await window.webgazer.clearData();
-
-        // 3. Wait for OS/Camera to settle
-        await new Promise(r => setTimeout(r, 1500));
-
-        if (cancelled) return;
-
-        // 4. Robust initialization
-        // We set the tracker. Note: If clmtrackr fails, it might fallback to MediaPipe.
-        await window.webgazer
-          .setRegression('ridge')
-          .setTracker('clmtrackr')
-          .setGazeListener(() => { })
-          .begin();
-
-        // 5. Configure UI
-        window.webgazer.showVideo(true);
-        window.webgazer.showFaceOverlay(true);
-        window.webgazer.showPredictionPoints(true);
-
-        if (!cancelled) {
-          setCalibReady(true);
-          setInitializing(false);
-        }
-      } catch (e) {
-        console.error('WebGazer init failed', e);
-        setInitializing(false);
-        if (!cancelled) {
-          alert('Eye tracking failed to initialize. Please ensure your camera is not in use by another application.');
-        }
-      }
-    };
-    initWebGazer();
-
-    return () => {
-      cancelled = true;
-      try {
-        window.webgazer && window.webgazer.showVideo(false);
-        window.webgazer && window.webgazer.showFaceOverlay(false);
-        window.webgazer && window.webgazer.showPredictionPoints(false);
-      } catch { }
-    };
-  }, [step]);
-
-  const handleCalibClick = async (e: React.MouseEvent) => {
-    if (!calibReady || !window.webgazer) return;
-    const target = e.currentTarget as HTMLButtonElement;
-    target.style.backgroundColor = '#10b981';
-    target.style.borderColor = '#059669';
-    target.disabled = true;
-
-    try {
-      const prediction = await window.webgazer.getCurrentPrediction();
-      if (prediction?.x && prediction?.y) {
-        setSamples((prev) => [...prev, { x: prediction.x, y: prediction.y }]);
-      }
-    } catch (err) { console.warn(err); }
-
-    const newCount = calibPoints + 1;
-    setCalibPoints(newCount);
-
-    if (newCount >= 9) {
-      setTimeout(() => {
-        // Save calibration data
-        if (samples.length > 0) {
-          const xs = samples.map(s => s.x);
-          const ys = samples.map(s => s.y);
-          localStorage.setItem(`gaze_calibration_${interviewId}`, JSON.stringify({
-            minX: Math.min(...xs), maxX: Math.max(...xs),
-            minY: Math.min(...ys), maxY: Math.max(...ys),
-            points: samples
-          }));
-        }
-
-        try {
-          window.webgazer.showVideo(false);
-          window.webgazer.showFaceOverlay(false);
-          window.webgazer.showPredictionPoints(false);
-        } catch { }
-
-        setStep('done');
-        // UPDATED: Pass the captured face URL back to parent
-        onComplete(capturedFaceUrl || undefined);
-      }, 500);
+    if (mediaRecorder.current && recording) {
+      mediaRecorder.current.stop();
+      setRecording(false);
     }
   };
 
@@ -265,7 +135,7 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
 
         {step === 'face' && (
           <div className="flex flex-col items-center gap-4 animate-in fade-in">
-            <p className="text-sm text-slate-400">Step 1/3: Reference Photo</p>
+            <p className="text-sm text-slate-400">Step 1/2: Reference Photo</p>
             <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-slate-700">
               {!stream ? (
                 <button onClick={startCamera} className="absolute inset-0 flex items-center justify-center text-emerald-500 hover:bg-white/5">Click to Enable Camera</button>
@@ -281,10 +151,10 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
 
         {step === 'voice' && (
           <div className="flex flex-col items-center gap-4 animate-in fade-in">
-            <p className="text-sm text-slate-400">Step 2/3: Voice Sample</p>
+            <p className="text-sm text-slate-400">Step 2/2: Voice Sample</p>
             <div className="p-4 bg-slate-800 rounded-lg text-center w-full">
               <p className="text-sm text-slate-300 mb-2">Please read aloud:</p>
-              <blockquote className="text-lg font-medium text-white italic">"My name is [Name], and I consent to being recorded."</blockquote>
+              <blockquote className="text-lg font-medium text-white italic">"My name is candidate, and I consent to being recorded for this interview."</blockquote>
             </div>
             {!recording ? (
               <button onClick={startRecording} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium">Start Recording</button>
@@ -294,33 +164,22 @@ export function BiometricSetup({ interviewId, onComplete }: Props) {
           </div>
         )}
 
-        {step === 'calibration' && (
-          <div className="fixed inset-0 z-60 bg-slate-950 flex flex-col items-center justify-center cursor-crosshair">
-            <h3 className="text-2xl font-bold text-white mb-2 pointer-events-none">Eye Calibration</h3>
-
-            {initializing ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
-                <p className="text-slate-400 animate-pulse">Initializing Eye Tracking...</p>
-              </div>
-            ) : (
-              <p className="text-slate-300 mb-8 pointer-events-none">Click the red dots.</p>
-            )}
-
-            {/* 9 Point Grid */}
-            {[
-              { top: '5%', left: '5%' }, { top: '5%', left: '50%' }, { top: '5%', left: '95%' },
-              { top: '50%', left: '5%' }, { top: '50%', left: '50%' }, { top: '50%', left: '95%' },
-              { top: '95%', left: '5%' }, { top: '95%', left: '50%' }, { top: '95%', left: '95%' },
-            ].map((pos, i) => (
-              <button
-                key={i}
-                onClick={handleCalibClick}
-                disabled={!calibReady}
-                className="absolute w-8 h-8 rounded-full border-4 border-white bg-red-500 hover:scale-125 transition-transform disabled:opacity-0"
-                style={{ top: pos.top, left: pos.left, transform: 'translate(-50%, -50%)' }}
-              />
-            ))}
+        {step === 'done' && (
+          <div className="text-center p-4 bg-slate-800/30 rounded-xl border border-indigo-500/20 animate-in fade-in zoom-in duration-500">
+            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+               <span className="text-2xl">✅</span>
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Setup Complete</h2>
+            <p className="text-sm text-slate-400 mb-6 font-medium">
+              Your identity and voice profile have been verified. 
+              The system is now ready for proctoring.
+            </p>
+            <button
+              onClick={() => onComplete(capturedFaceUrl || undefined)}
+              className="w-full py-3 bg-linear-to-r from-emerald-600 to-emerald-500 text-white rounded-lg font-bold hover:from-emerald-500 hover:to-emerald-400 transition-all shadow-lg"
+            >
+              Continue to Interview
+            </button>
           </div>
         )}
       </div>

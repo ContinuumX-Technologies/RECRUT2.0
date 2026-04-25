@@ -263,7 +263,7 @@ export function useProctor(
     const cleanupLockdown = setupLockdownListeners();
 
     // 🔴 Use video recording instead of still frames; reuse frameIntervalMs as chunk duration
-    startWebcamVideoRecording(config.frameIntervalMs);
+    // startWebcamVideoRecording(config.frameIntervalMs);
 
     sendEvent('proctor_started', { ua: navigator.userAgent });
 

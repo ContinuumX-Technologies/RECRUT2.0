@@ -31,6 +31,7 @@ export function useVisionProctor({ enabled, videoRef, referenceImage, onViolatio
   const [isTalking, setIsTalking] = useState(false);
   const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
   const [faceMatchScore, setFaceMatchScore] = useState<number | null>(null);
+  const [isFaceMissing, setIsFaceMissing] = useState(false);
 
   // AI Task References
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
@@ -41,6 +42,7 @@ export function useVisionProctor({ enabled, videoRef, referenceImage, onViolatio
   // Loop Control
   const lastProcessTimeRef = useRef(0);
   const requestRef = useRef<number>(0);
+  const isFaceMissingRef = useRef(false); // ref for use inside animation frame closure
 
   // 1. Initialize All MediaPipe Models
   useEffect(() => {
@@ -157,16 +159,38 @@ export function useVisionProctor({ enabled, videoRef, referenceImage, onViolatio
               const yaw = Math.asin(-matrix[2]) * (180 / Math.PI);
               const pitch = Math.atan2(matrix[6], matrix[10]) * (180 / Math.PI);
 
-              setIsLookingAway(Math.abs(yaw) > 30 || Math.abs(pitch) > 25);
+              const lookingAway = Math.abs(yaw) > 30 || Math.abs(pitch) > 25;
+              setIsLookingAway(lookingAway);
+
+              if (lookingAway) {
+                console.warn(`[AI] Looking Away: Yaw ${yaw.toFixed(1)}°, Pitch ${pitch.toFixed(1)}°`);
+              }
 
               // 3. Talking
               const blendshapes = results.faceBlendshapes![0].categories;
               const jawOpen = blendshapes.find(b => b.categoryName === 'jawOpen')?.score || 0;
-              setIsTalking(jawOpen > 0.2); 
+              setIsTalking(jawOpen > 0.2);
+
+              // 4. Mark face as present
+              if (isFaceMissingRef.current) {
+                console.info(`[AI] Face Detected again`);
+              }
+              isFaceMissingRef.current = false;
+              setIsFaceMissing(false);
+            } else {
+              // No face detected
+              if (!isFaceMissingRef.current) {
+                console.error("[AI] ⚠️ Face Missing — candidate left the frame");
+              }
+              isFaceMissingRef.current = true;
+              setIsFaceMissing(true);
+              setIsLookingAway(false);
+              setIsTalking(false);
             }
           }
 
           // --- TASK 2: Object Detection & Face Verification (Every 1s) ---
+          // *** Only run face verification if a face was actually detected ***
           if (runHeavyOps) {
             lastProcessTimeRef.current = now;
 
@@ -179,29 +203,34 @@ export function useVisionProctor({ enabled, videoRef, referenceImage, onViolatio
               
               setDetectedObjects(found);
               if (found.length > 0) {
+                console.warn(`[AI] Forbidden Objects: ${found.join(', ')}`);
                 onViolation('FORBIDDEN_OBJECT', { objects: found });
               }
             }
 
-            // B. Face Verification
-            if (imageEmbedderRef.current && referenceEmbeddingRef.current) {
+            // B. Face Verification — ONLY if a face is currently detected
+            if (!isFaceMissingRef.current && imageEmbedderRef.current && referenceEmbeddingRef.current) {
                const embedResult = imageEmbedderRef.current.embed(video);
                if (embedResult.embeddings.length > 0) {
                  const currentEmbedding = embedResult.embeddings[0].floatEmbedding as unknown as Float32Array;
                  const similarity = cosineSimilarity(referenceEmbeddingRef.current, currentEmbedding);
                  
                  setFaceMatchScore(similarity);
+                 console.info(`[AI] Identity Match: ${(similarity * 100).toFixed(1)}%`);
 
-                 // Threshold: < 0.7 usually implies mismatch
                  if (similarity < 0.7) {
+                   console.error(`[AI] ❌ Identity Mismatch (Score: ${similarity.toFixed(2)})`);
                    onViolation('FACE_MISMATCH', { score: similarity });
                  }
                }
+            } else if (isFaceMissingRef.current) {
+              // Face is missing — clear the match score so we don't show stale data
+              setFaceMatchScore(null);
             }
           }
 
         } catch (err) {
-          console.warn("Frame analysis error:", err);
+          console.warn("[AI] Frame analysis error:", err);
         }
       }
       requestRef.current = requestAnimationFrame(analyzeFrame);
@@ -215,6 +244,7 @@ export function useVisionProctor({ enabled, videoRef, referenceImage, onViolatio
     modelsLoaded,
     isLookingAway,
     isTalking,
+    isFaceMissing,
     detectedObjects,
     faceMatchScore
   };

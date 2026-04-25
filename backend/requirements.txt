@@ -3,3 +3,6 @@ opencv-python-headless
 requests
 pytesseract
 pdf2image
+mediapipe
+face_recognition
+numpy
