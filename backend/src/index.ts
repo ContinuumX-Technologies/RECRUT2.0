@@ -38,7 +38,7 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend
+    origin: ["http://localhost:5173", "https://recrut-2-0.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
