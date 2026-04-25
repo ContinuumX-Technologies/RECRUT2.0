@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { HumeClient } from "hume";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
+
 
 // 1. Ensure dotenv is configured if running locally
 // require('dotenv').config(); 
@@ -27,7 +28,8 @@ export async function synthesizeRajeshVoice(
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const fileName = `rajesh-${uuidv4()}.mp3`;
+  const fileName = `rajesh-${randomUUID()}.mp3`;
+
   const outputPath = path.join(outputDir, fileName);
 
   try {
