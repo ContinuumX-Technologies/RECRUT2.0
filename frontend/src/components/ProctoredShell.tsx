@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useVisionProctor } from '../hooks/useVisionProctor';
+import { useProctoringVoice } from '../hooks/useProctoringVoice';
 import type { ProctorAlert } from '../hooks/useProctorAlert';
 import { useRef } from 'react';
 
@@ -52,6 +53,8 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
   const [faceWarning, setFaceWarning] = useState(false);
   const [identityWarning, setIdentityWarning] = useState(false);
 
+  const voice = useProctoringVoice();
+
   const incrementViolation = useCallback(
     async (reason: string) => {
       setState((prev) => {
@@ -92,11 +95,12 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
     videoRef,
     referenceImage: referenceFaceUrl,
     onViolation: (type, data) => {
-      // deduplicate via state
       if (type === 'MULTIPLE_FACES_DETECTED') {
         incrementViolation('MULTIPLE_PEOPLE_DETECTED');
+        voice.alertMultipleFaces();
       } else if (type === 'FORBIDDEN_OBJECT') {
         incrementViolation(`FORBIDDEN_OBJECT_DETECTED: ${data.objects.join(', ')}`);
+        voice.alertForbiddenObject();
       }
     },
   });
@@ -108,6 +112,7 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
       if (mismatched && !identityWarning) {
         setIdentityWarning(true);
         incrementViolation('IDENTITY_MISMATCH (Internal AI)');
+        voice.alertIdentityMismatch();
       } else if (!mismatched && identityWarning) {
         setIdentityWarning(false);
       }
@@ -120,6 +125,7 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
       setGazeWarning(true);
       incrementViolation('GAZE_AWAY (Head Pose)');
       sendEvent(interviewId, 'GAZE_AWAY_START', {});
+      voice.alertGazeAway();
     } else if (!isLookingAway && gazeWarning) {
       setGazeWarning(false);
       sendEvent(interviewId, 'GAZE_AWAY_END', {});
@@ -132,6 +138,7 @@ export const ProctoredShell: React.FC<Props> = ({ interviewId, children, proctor
       setFaceWarning(true);
       incrementViolation('FACE_MISSING');
       sendEvent(interviewId, 'FACE_MISSING_START', {});
+      voice.alertFaceMissing();
     } else if (!isFaceMissing && faceWarning) {
       setFaceWarning(false);
       sendEvent(interviewId, 'FACE_MISSING_END', {});
