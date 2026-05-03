@@ -240,7 +240,8 @@ app.get('/api/interviews/:id/config', async (req: Request, res: Response) => {
 
   const proctorConfig = cfg.proctor || defaultProctor;
 
-  // [FIX] Extract questions from 'rounds' if available, otherwise use legacy 'questions'
+  // [FIXED] Extract questions from 'rounds' if available, otherwise use legacy 'questions'
+  // CRITICAL: Also include any dynamically appended questions from realtime interview
   let questions: any[] = [];
 
   if (Array.isArray(cfg.rounds) && cfg.rounds.length > 0) {
@@ -251,11 +252,21 @@ app.get('/api/interviews/:id/config', async (req: Request, res: Response) => {
     questions = cfg.questions;
   }
 
+  // [NEW] Always merge in any dynamically appended questions (from realtime AI follow-ups)
+  // These are stored in cfg.questions even when cfg.rounds is used
+  if (Array.isArray(cfg.questions) && cfg.questions.length > questions.length) {
+    // Append any questions that were added dynamically (like AI follow-ups)
+    // Only include questions that aren't already in the list to avoid duplicates
+    const existingIds = new Set(questions.map(q => q.id));
+    const dynamicQuestions = cfg.questions.filter(q => !existingIds.has(q.id));
+    questions = [...questions, ...dynamicQuestions];
+  }
+
   res.json({
     id: interview.id,
     candidateName: interview.candidateName,
     status: interview.status,
-    questions,       // This will now contain the questions from your rounds
+    questions,       // This will now contain the questions from your rounds + any dynamic questions
     proctorConfig,
   });
 });

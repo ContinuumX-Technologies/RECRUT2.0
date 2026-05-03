@@ -307,6 +307,11 @@ export function CandidateInterviewPage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  
+  // [NEW] Track follow-up count per question to prevent infinite loops
+  // Maps parent question ID to number of follow-ups generated
+  const followupCountRef = useRef<Record<string, number>>({});
+  const MAX_FOLLOWUPS_PER_QUESTION = 5;
 
   useEffect(() => {
     if (!interviewId) return;
@@ -642,7 +647,7 @@ export function CandidateInterviewPage() {
   }, [isProcessing]);
 
 
-  // [UPDATED] Detect follow-up questions with Audio/Text Sync
+  // [FIXED] Detect follow-up questions with proper audio-question handling
   useEffect(() => {
     if (!config) return;
 
@@ -657,29 +662,90 @@ export function CandidateInterviewPage() {
 
     const prevQuestions = prevQuestionsRef.current;
 
-    // 2. Detection: Question List Grew (New Question Inserted)
+    // 2. Detection: Question List Grew (New Question Appended or Inserted)
     if (currentQuestions.length > prevQuestions.length) {
-      console.log("New questions detected. Checking for follow-up insertion...");
-      const potentialNextIndex = currentIndex + 1;
-
-      if (potentialNextIndex < currentQuestions.length) {
-        const nextQuestion = currentQuestions[potentialNextIndex];
-        const prevQuestionAtNextIndex = prevQuestions[potentialNextIndex];
-
-        if (!prevQuestionAtNextIndex || nextQuestion.id !== prevQuestionAtNextIndex.id) {
-          console.log("Follow-up question detected (Insertion). Syncing audio...");
-
+      console.log("New questions detected. Checking for follow-up...");
+      
+      const currentQuestion = currentQuestions[currentIndex];
+      
+      // If current question is audio type, look for new audio follow-ups
+      if (currentQuestion?.type === 'audio') {
+        // Find the last audio question in the current list
+        const newAudioQuestions = currentQuestions.slice(currentIndex + 1).filter(q => q.type === 'audio');
+        const prevAudioQuestions = prevQuestions.slice(currentIndex + 1).filter(q => q.type === 'audio');
+        
+        if (newAudioQuestions.length > prevAudioQuestions.length) {
+          // A new audio follow-up question has been generated
+          const nextAudioQuestion = newAudioQuestions[0];
+          const nextAudioIndex = currentQuestions.findIndex(q => q.id === nextAudioQuestion.id);
+          
+          // Count this follow-up
+          const parentQId = currentQuestion.id;
+          followupCountRef.current[parentQId] = (followupCountRef.current[parentQId] || 0) + 1;
+          const followupCount = followupCountRef.current[parentQId];
+          
+          console.log(`✨ Follow-up audio question detected (${followupCount}/${MAX_FOLLOWUPS_PER_QUESTION}). Auto-advancing to index ${nextAudioIndex}`);
+          
+          // Check if we've hit the maximum follow-ups for this question
+          if (followupCount >= MAX_FOLLOWUPS_PER_QUESTION) {
+            console.warn(`⚠️ Reached maximum follow-ups (${MAX_FOLLOWUPS_PER_QUESTION}) for question "${parentQId}". Auto-advancing to next question type.`);
+            
+            // Find the next non-audio question
+            const nextNonAudioIndex = currentQuestions.findIndex((q, idx) => idx > currentIndex && q.type !== 'audio');
+            if (nextNonAudioIndex !== -1) {
+              setHiddenQuestionIds(prev => {
+                const next = new Set(prev);
+                next.add(parentQId);
+                return next;
+              });
+              setCurrentIndex(nextNonAudioIndex);
+              stopRealtimeAudio();
+              if (realtimeWSRef.current?.readyState === WebSocket.OPEN) {
+                realtimeWSRef.current.close();
+                realtimeWSRef.current = null;
+              }
+              prevQuestionsRef.current = currentQuestions;
+              return;
+            }
+          }
+          
           // Hide the current (parent) question
-          const parentQuestionId = currentQuestions[currentIndex].id;
-          setHiddenQuestionIds(prev => new Set(prev).add(parentQuestionId));
-
-          // Move to next question, but KEEP isProcessing=true to hide text initially
-          setCurrentIndex(potentialNextIndex);
-
-          // Fetch audio immediately.
-          speakQuestion(nextQuestion.text).finally(() => {
+          setHiddenQuestionIds(prev => new Set(prev).add(currentQuestion.id));
+          
+          // Move to the follow-up question
+          setCurrentIndex(nextAudioIndex);
+          
+          // Fetch audio immediately
+          speakQuestion(nextAudioQuestion.text).finally(() => {
             setIsProcessing(false);
           });
+          
+          // Update ref and return early to avoid further processing
+          prevQuestionsRef.current = currentQuestions;
+          return;
+        }
+      } else {
+        // For non-audio questions, check if question at currentIndex + 1 changed
+        const potentialNextIndex = currentIndex + 1;
+        if (potentialNextIndex < currentQuestions.length) {
+          const nextQuestion = currentQuestions[potentialNextIndex];
+          const prevQuestionAtNextIndex = prevQuestions[potentialNextIndex];
+
+          if (!prevQuestionAtNextIndex || nextQuestion.id !== prevQuestionAtNextIndex.id) {
+            console.log("Follow-up question detected (Insertion). Syncing audio...");
+
+            // Hide the current (parent) question
+            const parentQuestionId = currentQuestions[currentIndex].id;
+            setHiddenQuestionIds(prev => new Set(prev).add(parentQuestionId));
+
+            // Move to next question, but KEEP isProcessing=true to hide text initially
+            setCurrentIndex(potentialNextIndex);
+
+            // Fetch audio immediately.
+            speakQuestion(nextQuestion.text).finally(() => {
+              setIsProcessing(false);
+            });
+          }
         }
       }
     }
@@ -921,10 +987,34 @@ export function CandidateInterviewPage() {
     const nextRawIndex = questions.findIndex(q => q.id === nextVisibleQ.id);
 
     if (nextRawIndex !== -1) {
+      // Check if transitioning from audio to non-audio question
+      const currentQuestion = questions[currentIndex];
+      const nextQuestion = questions[nextRawIndex];
+      
+      if (currentQuestion?.type === 'audio' && nextQuestion?.type !== 'audio') {
+        // Transitioning away from voice interview - close realtime session
+        console.log("🔌 Transitioning from audio to " + nextQuestion?.type + " question. Closing realtime interview.");
+        
+        if (realtimeWSRef.current && realtimeWSRef.current.readyState === WebSocket.OPEN) {
+          // Send a signal that we're done with voice interviews
+          try {
+            realtimeWSRef.current.send(JSON.stringify({ type: 'end_interview' }));
+          } catch (e) {
+            console.warn("Failed to send end_interview signal:", e);
+          }
+          // Close the connection
+          realtimeWSRef.current.close();
+          realtimeWSRef.current = null;
+        }
+        
+        // Stop any ongoing audio recording
+        stopRealtimeAudio();
+      }
+      
       setCurrentIndex(nextRawIndex);
       setCodeOutput(null);
     }
-  }, [currentVisualIndex, visibleQuestions, questions]);
+  }, [currentVisualIndex, visibleQuestions, questions, currentIndex]);
 
   const handlePrev = useCallback(() => {
     if (currentVisualIndex <= 0) {

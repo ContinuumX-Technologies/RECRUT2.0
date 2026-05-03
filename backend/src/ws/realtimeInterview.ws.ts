@@ -405,9 +405,20 @@ Failure to enforce discrepancy checks is considered incorrect behavior.
                 (interview.template?.config as any) ||
                 {};
 
+              // [FIXED] Extract all existing questions (handle both rounds and flat structure)
+              let existingQuestions: any[] = [];
+              if (Array.isArray(currentConfig.rounds) && currentConfig.rounds.length > 0) {
+                // If config uses rounds, flatten them
+                existingQuestions = currentConfig.rounds.flatMap((r: any) => r.questions || []);
+              } else if (Array.isArray(currentConfig.questions)) {
+                // Otherwise use flat questions
+                existingQuestions = currentConfig.questions;
+              }
+
               // 1. Append to question list (structured data)
+              // Always append to customConfig.questions for dynamic questions (like AI follow-ups)
               const updatedQuestions = [
-                ...(currentConfig.questions || []),
+                ...existingQuestions,
                 newQuestion,
               ];
 
