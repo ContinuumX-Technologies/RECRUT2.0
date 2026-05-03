@@ -265,28 +265,29 @@ const LandingPage = () => {
       </div>
 
       <header className={`lp-nav-shell ${isScrolled ? 'scrolled' : ''}`}>
-        <div className="lp-container lp-flex lp-items-center lp-justify-between lp-py-nav">
-          <a href="#top" className="lp-brand" onClick={() => setIsMobileMenuOpen(false)}>
-            <span className="lp-brand-mark"><Brain size={18} /></span>
-            <span className="lp-nav-logo-text">RECRUT</span>
-          </a>
+        <div className="lp-container lp-nav-shell-inner">
+          <div className="lp-dynamic-island">
+            <a href="#top" className="lp-nav-brand-pill" onClick={() => setIsMobileMenuOpen(false)}>
+              <span className="lp-brand-mark"><Brain size={18} /></span>
+              <span className="lp-nav-logo-text">RECRUT</span>
+            </a>
 
-          <nav className="lp-nav-links lp-desktop-nav" aria-label="Primary">
-            {navItems.map((item) => (
-              <a key={item.label} href={item.href} className="lp-nav-link">
-                {item.label}
-              </a>
-            ))}
-          </nav>
+            <nav className="lp-nav-links lp-desktop-nav" aria-label="Primary">
+              {navItems.map((item) => (
+                <a key={item.label} href={item.href} className="lp-nav-pill-link">
+                  {item.label}
+                </a>
+              ))}
+            </nav>
 
-          <div className="lp-flex lp-items-center lp-gap-4 lp-desktop-actions">
-            <a className="lp-nav-link lp-login-link" href={signUpUrl}>Login</a>
-            <a className="lp-btn lp-btn-primary lp-btn-sm" href={signUpUrl}>Get Started</a>
+            <div className="lp-nav-actions">
+              <a className="lp-nav-action-pill lp-login-link" href={signUpUrl}>Login</a>
+              <a className="lp-btn lp-btn-primary lp-btn-sm lp-nav-cta" href={signUpUrl}>Get Started</a>
+              <button className="lp-mobile-menu-button" onClick={() => setIsMobileMenuOpen((current) => !current)} aria-label="Toggle navigation">
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
           </div>
-
-          <button className="lp-mobile-menu-button" onClick={() => setIsMobileMenuOpen((current) => !current)} aria-label="Toggle navigation">
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
 
         <AnimatePresence>
