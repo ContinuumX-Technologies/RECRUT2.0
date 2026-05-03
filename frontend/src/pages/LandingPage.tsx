@@ -1,709 +1,672 @@
-import { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { 
-  Sparkles, 
-  Users, 
-  Brain, 
-  CheckCircle, 
+import { useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import {
   ArrowRight,
+  BadgeCheck,
   BarChart3,
+  Brain,
+  CheckCircle,
+  ChevronRight,
   Clock,
-  Target,
-  MessageSquare,
-  Star,
+  Cpu,
+  Github,
   Globe,
+  Layers3,
+  Linkedin,
+  LineChart,
+  Mail,
+  Menu,
+  MessageSquare,
+  Minus,
+  Plus,
+  Play,
+  Quote,
+  Rocket,
   Shield,
-  Award
+  Sparkles,
+  Star,
+  Target,
+  Twitter,
+  Users,
+  Video,
+  X,
 } from 'lucide-react';
+import { Features } from '../components/ui/features-6';
+import { Footer } from '../components/ui/modem-animated-footer';
+import './LandingPage.css';
+
+interface ScrollRevealProps {
+  children: ReactNode;
+  delay?: number;
+  direction?: 'up' | 'down' | 'left' | 'right';
+  className?: string;
+}
+
+const ScrollReveal = ({ children, delay = 0, direction = 'up', className = '' }: ScrollRevealProps) => {
+  const directions = {
+    up: { y: 40, x: 0 },
+    down: { y: -40, x: 0 },
+    left: { x: 40, y: 0 },
+    right: { x: -40, y: 0 },
+  };
+
+  return (
+    <div className={`lp-relative lp-w-full ${className}`}>
+      <motion.div
+        initial={{ opacity: 0, ...directions[direction] }}
+        whileInView={{ opacity: 1, x: 0, y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
+const signUpUrl = 'http://localhost:5173/register';
 
 const LandingPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 300], [0, 50]);
-  const y2 = useTransform(scrollY, [0, 300], [0, -50]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.5]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAnnualBilling, setIsAnnualBilling] = useState(true);
+  const [openFaq, setOpenFaq] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 80,
+    damping: 25,
+    restDelta: 0.001,
+  });
+
+  const progressWidth = useTransform(smoothProgress, [0, 1], ['0%', '100%']);
+  const heroY = useTransform(smoothProgress, [0, 0.2], [0, 90]);
+  const heroOpacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
+  const bgY1 = useTransform(smoothProgress, [0, 1], [0, 360]);
+  const bgY2 = useTransform(smoothProgress, [0, 1], [0, -220]);
+  const bgY3 = useTransform(smoothProgress, [0, 1], [0, 280]);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 40);
     };
+
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
+  useEffect(() => {
+    document.body.classList.toggle('lp-lock-scroll', isMobileMenuOpen);
 
-  const stagger = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+    return () => {
+      document.body.classList.remove('lp-lock-scroll');
+    };
+  }, [isMobileMenuOpen]);
 
   const features = [
     {
       icon: Brain,
-      title: "AI-Powered Matching",
-      description: "Advanced algorithms analyze skills, culture fit, and potential to find perfect matches."
+      title: 'AI Analysis',
+      description: 'Deep learning models that understand complex candidate skillsets beyond keywords.',
     },
     {
       icon: Clock,
-      title: "90% Faster Hiring",
-      description: "Reduce time-to-hire from weeks to days with intelligent automation."
+      title: 'Instant Sourcing',
+      description: 'Slash your time-to-hire by automating high-precision candidate sourcing.',
     },
     {
       icon: Target,
-      title: "Precision Screening",
-      description: "Automatically filter and rank candidates based on your exact requirements."
+      title: 'Cultural Fit',
+      description: 'Predict company-candidate alignment using behavioral signals and AI profiling.',
     },
     {
       icon: MessageSquare,
-      title: "Smart Communication",
-      description: "AI handles initial outreach and scheduling, keeping candidates engaged."
+      title: 'Engagement',
+      description: 'Automated candidate nurturing that keeps top talent engaged throughout the flow.',
     },
     {
       icon: BarChart3,
-      title: "Data-Driven Insights",
-      description: "Make informed decisions with comprehensive analytics and predictions."
+      title: 'Analytics',
+      description: 'Recruitment dashboards with pipeline visibility and predictive hiring insights.',
     },
     {
       icon: Shield,
-      title: "Bias-Free Hiring",
-      description: "Ensure fair evaluation based purely on qualifications and potential."
-    }
+      title: 'Fair Hiring',
+      description: 'Built-in bias detection helps teams run a more equitable recruiting process.',
+    },
   ];
 
-  const stats = [
-    { value: "85%", label: "Reduction in Time-to-Hire" },
-    { value: "3.2x", label: "More Qualified Candidates" },
-    { value: "92%", label: "Hiring Success Rate" },
-    { value: "60%", label: "Cost Savings" }
+  const integrations = [
+    'LinkedIn',
+    'Greenhouse',
+    'Workday',
+    'Ashby',
+    'Slack',
+    'Notion',
+    'Google Workspace',
+    'Zoom',
+    'OpenAI',
+    'Salesforce',
+    'BambooHR',
+    'Calendly',
   ];
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "VP of Talent, TechCorp",
-      content: "RecruitAI transformed our hiring process. We're finding better candidates in a fraction of the time.",
-      rating: 5
+      name: 'Ava Chen',
+      role: 'VP of Talent, Northstar AI',
+      quote: 'RECRUT cut our screening time from days to minutes while improving quality and candidate experience.',
     },
     {
-      name: "Michael Roberts",
-      role: "HR Director, InnovateCo",
-      content: "The AI matching is incredibly accurate. It's like having a team of expert recruiters working 24/7.",
-      rating: 5
+      name: 'Marcus Patel',
+      role: 'Founder, HelioCloud',
+      quote: 'The automation is production-grade. It feels like we added a full recruiting team overnight.',
     },
     {
-      name: "Emma Thompson",
-      role: "CEO, StartupHub",
-      content: "We've cut our recruitment costs by 60% while improving the quality of our hires. Game-changing.",
-      rating: 5
-    }
+      name: 'Sofia Rivera',
+      role: 'Head of People, LatticeRun',
+      quote: 'We finally have a hiring system that is fast, measurable, and consistent across every role.',
+    },
+  ];
+
+  const pricingPlans = [
+    {
+      name: 'Starter',
+      priceMonthly: '$49',
+      priceAnnual: '$39',
+      description: 'For lean teams validating faster hiring workflows.',
+      features: ['AI job intake', 'Basic resume ranking', '3 active roles', 'Email support'],
+    },
+    {
+      name: 'Growth',
+      priceMonthly: '$149',
+      priceAnnual: '$119',
+      description: 'The most popular plan for scaling hiring teams.',
+      features: ['Everything in Starter', 'Interview automation', 'Analytics dashboard', 'Unlimited roles', 'Priority support'],
+      highlighted: true,
+    },
+    {
+      name: 'Enterprise',
+      priceMonthly: 'Custom',
+      priceAnnual: 'Custom',
+      description: 'For orgs that need governance, security, and custom integrations.',
+      features: ['Custom workflows', 'SSO and RBAC', 'Dedicated success manager', 'Private deployment', 'Security review'],
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'How quickly can we go live?',
+      answer: 'Most teams can launch within a day using the default workflow and then customize hiring stages as needed.',
+    },
+    {
+      question: 'Can RECRUT work with our ATS?',
+      answer: 'Yes. We support common ATS, calendar, and messaging integrations, with custom API connections for enterprise customers.',
+    },
+    {
+      question: 'Is candidate data secure?',
+      answer: 'The product is designed around encryption, auditability, and permissioned access so hiring teams can operate safely.',
+    },
+    {
+      question: 'Does it support collaborative hiring?',
+      answer: 'Yes. Interviewers, recruiters, and hiring managers can review candidates, share feedback, and coordinate in one place.',
+    },
+  ];
+
+  const heroHighlights = [
+    { icon: Users, label: '500+ teams onboarded' },
+    { icon: BadgeCheck, label: 'SOC2-ready workflows' },
+    { icon: Globe, label: 'Global candidate reach' },
+  ];
+
+  const stats = [
+    { value: '85%', label: 'Faster Hiring' },
+    { value: '3.2x', label: 'Talent Quality' },
+    { value: '92%', label: 'Retention' },
+    { value: '60%', label: 'Cost Saving' },
+  ];
+
+  const navItems = [
+    { label: 'Features', href: '#features' },
+    { label: 'Demo', href: '#demo' },
+    { label: 'Integrations', href: '#integrations' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'FAQ', href: '#faq' },
   ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden w-screen">
-      {/* Navigation */}
-      <motion.nav 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-          isScrolled 
-            ? 'bg-white/80 backdrop-blur-xl shadow-sm' 
-            : 'bg-transparent'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <motion.div 
-            className="flex items-center space-x-2"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Brain className="w-8 h-8 text-indigo-600" />
-            <span className="text-xl font-semibold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              RecruitAI
-            </span>
-          </motion.div>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            {['Features', 'How it Works', 'Pricing', 'About'].map((item) => (
-              <motion.a
-                key={item}
-                href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {item}
-              </motion.a>
-            ))}
-          </div>
+    <div ref={containerRef} className="lp-wrapper">
+      <motion.div className="lp-progress-bar" style={{ width: progressWidth }} />
+      <div className="lp-noise-overlay" />
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-gray-900 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
-          >
-            Get Started
-          </motion.button>
-        </div>
-      </motion.nav>
-
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-20">
-        <div className="absolute inset-0 bg-linear-to-br from-indigo-50 via-white to-purple-50 opacity-50" />
-        
+      <div className="lp-bg-parallax">
+        <motion.div style={{ y: bgY1 }} className="lp-orb lp-orb-1" />
+        <motion.div style={{ y: bgY2 }} className="lp-orb lp-orb-2" />
+        <motion.div style={{ y: bgY3 }} className="lp-orb lp-orb-3" />
         <motion.div
-          style={{ y: y1 }}
-          className="absolute top-40 left-20 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+          animate={reduceMotion ? undefined : { rotate: 360, x: [0, 24, 0], y: [0, -18, 0] }}
+          transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+          className="lp-absolute lp-float-shape lp-float-shape-1"
         />
         <motion.div
-          style={{ y: y2 }}
-          className="absolute bottom-40 right-20 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+          animate={reduceMotion ? undefined : { rotate: -360, x: [0, -20, 0], y: [0, 22, 0] }}
+          transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
+          className="lp-absolute lp-float-shape lp-float-shape-2"
         />
+      </div>
 
-        <motion.div 
-          className="relative max-w-6xl mx-auto text-center z-10"
-          variants={stagger}
-          initial="initial"
-          animate="animate"
-        >
-          <motion.div
-            variants={fadeIn}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 text-sm font-medium text-gray-700 mb-8"
-          >
-            <Sparkles className="w-4 h-4 mr-2 text-indigo-600" />
-            AI-Powered Recruiting Revolution
-          </motion.div>
+      <header className={`lp-nav-shell ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="lp-container lp-flex lp-items-center lp-justify-between lp-py-nav">
+          <a href="#top" className="lp-brand" onClick={() => setIsMobileMenuOpen(false)}>
+            <span className="lp-brand-mark"><Brain size={18} /></span>
+            <span className="lp-nav-logo-text">RECRUT</span>
+          </a>
 
-          <motion.h1
-            variants={fadeIn}
-            style={{ opacity }}
-            className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight"
-          >
-            Find Perfect
-            <span className="block bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Talent Faster
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeIn}
-            className="mt-8 text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
-          >
-            Let AI handle the heavy lifting while you focus on building meaningful connections with the right candidates.
-          </motion.p>
-
-          <motion.div
-            variants={fadeIn}
-            className="mt-12 flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-all flex items-center justify-center group"
-            >
-              Start Free Trial
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-white text-gray-900 rounded-full font-medium border border-gray-200 hover:border-gray-300 transition-all"
-            >
-              Watch Demo
-            </motion.button>
-          </motion.div>
-
-          <motion.div
-            variants={fadeIn}
-            className="mt-16 flex items-center justify-center space-x-8 text-sm text-gray-500"
-          >
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-              No credit card required
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-              14-day free trial
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-              Cancel anytime
-            </div>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="text-4xl md:text-5xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className="mt-2 text-gray-600">{stat.label}</div>
-              </motion.div>
+          <nav className="lp-nav-links lp-desktop-nav" aria-label="Primary">
+            {navItems.map((item) => (
+              <a key={item.label} href={item.href} className="lp-nav-link">
+                {item.label}
+              </a>
             ))}
-          </motion.div>
-        </div>
-      </section>
+          </nav>
 
-      {/* Features Section */}
-      <section id="features" className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Recruiting, Reimagined
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Experience the future of talent acquisition with our comprehensive AI-powered platform.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-                className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
-              >
-                <div className="w-14 h-14 bg-linear-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6">
-                  <feature.icon className="w-7 h-7 text-indigo-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
+          <div className="lp-flex lp-items-center lp-gap-4 lp-desktop-actions">
+            <a className="lp-nav-link lp-login-link" href={signUpUrl}>Login</a>
+            <a className="lp-btn lp-btn-primary lp-btn-sm" href={signUpUrl}>Get Started</a>
           </div>
-        </div>
-      </section>
 
-      {/* How it Works Section */}
-      <section id="how-it-works" className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Three simple steps to revolutionize your hiring process
-            </p>
+          <button className="lp-mobile-menu-button" onClick={() => setIsMobileMenuOpen((current) => !current)} aria-label="Toggle navigation">
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="lp-mobile-nav"
+            >
+              {navItems.map((item) => (
+                <a key={item.label} href={item.href} className="lp-mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                  {item.label}
+                </a>
+              ))}
+              <div className="lp-mobile-nav-actions">
+                <a className="lp-btn lp-btn-secondary lp-w-full" href={signUpUrl}>Login</a>
+                <a className="lp-btn lp-btn-primary lp-w-full" href={signUpUrl}>Get Started</a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      <main id="top" className="lp-relative lp-z-10">
+        <section className="lp-relative lp-min-h-screen lp-flex lp-flex-col lp-items-center lp-justify-center lp-pt-hero lp-hero-section">
+          <motion.div className="lp-container lp-text-center" style={{ y: heroY, opacity: heroOpacity }}>
+            <ScrollReveal>
+              <div className="lp-hero-badge">
+                <Sparkles size={16} />
+                <span>AI-Powered Talent Acquisition</span>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.1}>
+              <h1 className="lp-h1">
+                The Future of Hiring is
+                <span className="lp-text-gradient-animated lp-h1-accent">Intelligent.</span>
+              </h1>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.2}>
+              <p className="lp-p-hero lp-mb-12">
+                Automate sourcing, screening, and engagement with a polished AI hiring platform built for modern SaaS teams.
+              </p>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.3}>
+              <div className="lp-flex lp-justify-center lp-gap-6 lp-hero-actions">
+                <a className="lp-btn lp-btn-primary" href={signUpUrl}>
+                  Start Hiring Now
+                  <ArrowRight size={20} />
+                </a>
+                <a className="lp-btn lp-btn-secondary" href="#demo">
+                  Watch the Demo
+                </a>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.4}>
+              <div className="lp-hero-trust-row">
+                {heroHighlights.map(({ icon: Icon, label }) => (
+                  <div key={label} className="lp-flex lp-items-center lp-gap-2">
+                    <Icon size={14} color="#818cf8" />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </ScrollReveal>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-12">
-            {[
-              {
-                step: "01",
-                title: "Define Your Needs",
-                description: "Tell us about your ideal candidate, company culture, and role requirements.",
-                icon: Target
-              },
-              {
-                step: "02",
-                title: "AI Does the Magic",
-                description: "Our AI screens, matches, and engages with candidates automatically.",
-                icon: Brain
-              },
-              {
-                step: "03",
-                title: "Meet Your Match",
-                description: "Review top candidates and schedule interviews with perfect fits.",
-                icon: Users
-              }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                <div className="text-6xl font-bold text-gray-100 mb-4">{item.step}</div>
-                <div className="bg-white p-8 rounded-3xl shadow-sm">
-                  <item.icon className="w-10 h-10 text-indigo-600 mb-4" />
-                  <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+          <ScrollReveal delay={0.2} className="lp-hero-preview-wrap">
+            <div className="lp-hero-preview lp-glass-panel">
+              <div className="lp-hero-preview-topbar">
+                <div className="lp-preview-dots"><span /><span /><span /></div>
+                <span className="lp-preview-label">Live hiring cockpit</span>
+              </div>
+              <div className="lp-hero-preview-grid">
+                <div className="lp-preview-card lp-preview-card-accent">
+                  <span className="lp-preview-card-label">Qualified candidates</span>
+                  <strong>128</strong>
+                  <span>+24% this week</span>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-                        transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Loved by Recruiters Worldwide
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of companies that have transformed their hiring process
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100"
-              >
-                <div className="flex mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
+                <div className="lp-preview-card">
+                  <span className="lp-preview-card-label">Screening automation</span>
+                  <strong>94%</strong>
+                  <span>less manual work</span>
                 </div>
-                <p className="text-gray-700 mb-6 italic">"{testimonial.content}"</p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-linear-to-br from-indigo-100 to-purple-100 rounded-full mr-4" />
+                <div className="lp-preview-video">
+                  <button className="lp-preview-play" aria-label="Play demo preview">
+                    <Play size={20} />
+                  </button>
                   <div>
-                    <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-sm text-gray-500">{testimonial.role}</div>
+                    <span className="lp-preview-card-label">Demo preview</span>
+                    <strong>See RECRUT in action</strong>
+                    <p>Candidate matching, interview orchestration, and analytics in one system.</p>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+            </div>
+          </ScrollReveal>
+        </section>
+
+        <section className="lp-py-section" id="features">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">Product capabilities</div>
+              <h2 className="lp-h2">Supercharge your workflow</h2>
+              <p className="lp-p-hero">Everything you need to find, attract, and hire the best talent globally.</p>
+            </ScrollReveal>
+
+            <div className="lp-grid lp-grid-cols-3 lp-gap-8">
+              {features.map((feature, index) => {
+                const FeatureIcon = feature.icon;
+
+                return (
+                  <ScrollReveal key={feature.title} delay={index * 0.08}>
+                    <div className="lp-glass-panel lp-feature-card">
+                      <div className="lp-card-icon">
+                        <FeatureIcon size={28} />
+                      </div>
+                      <h3 className="lp-h3 lp-mb-4">{feature.title}</h3>
+                      <p className="lp-p-large">{feature.description}</p>
+                    </div>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the plan that fits your hiring needs
-            </p>
-          </motion.div>
+        <Features />
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Starter",
-                price: "$299",
-                period: "per month",
-                features: [
-                  "Up to 10 job postings",
-                  "AI candidate matching",
-                  "Basic analytics",
-                  "Email support",
-                  "1 team member"
-                ],
-                highlighted: false
-              },
-              {
-                name: "Professional",
-                price: "$799",
-                period: "per month",
-                features: [
-                  "Unlimited job postings",
-                  "Advanced AI matching",
-                  "Detailed analytics",
-                  "Priority support",
-                  "5 team members",
-                  "Custom workflows",
-                  "API access"
-                ],
-                highlighted: true
-              },
-              {
-                name: "Enterprise",
-                price: "Custom",
-                period: "contact sales",
-                features: [
-                  "Everything in Professional",
-                  "Unlimited team members",
-                  "Custom AI training",
-                  "Dedicated account manager",
-                  "SLA guarantee",
-                  "On-premise deployment",
-                  "Advanced security"
-                ],
-                highlighted: false
-              }
-            ].map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10 }}
-                className={`relative p-8 rounded-3xl transition-all duration-300 ${
-                  plan.highlighted 
-                    ? 'bg-gray-900 text-white shadow-2xl scale-105' 
-                    : 'bg-white shadow-sm border border-gray-100'
-                }`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-linear-to-r from-indigo-600 to-purple-600 text-white text-sm rounded-full">
-                    Most Popular
+        <section className="lp-py-section lp-relative lp-overflow-hidden">
+          <div className="lp-container">
+            <div className="lp-grid lp-grid-cols-4 lp-gap-12">
+              {stats.map((stat, index) => (
+                <ScrollReveal key={stat.label} delay={index * 0.08}>
+                  <div className="lp-text-center">
+                    <div className="lp-text-gradient-static lp-stat-value">{stat.value}</div>
+                    <div className="lp-stat-label">{stat.label}</div>
                   </div>
-                )}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-semibold mb-4">{plan.name}</h3>
-                  <div className="flex items-baseline">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className={`ml-2 ${plan.highlighted ? 'text-gray-300' : 'text-gray-500'}`}>
-                      {plan.period}
-                    </span>
-                  </div>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center">
-                      <CheckCircle className={`w-5 h-5 mr-3 shrink-0 ${
-                        plan.highlighted ? 'text-green-400' : 'text-green-500'
-                      }`} />
-                      <span className={plan.highlighted ? 'text-gray-100' : 'text-gray-600'}>
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`w-full py-3 rounded-full font-medium transition-colors ${
-                    plan.highlighted
-                      ? 'bg-white text-gray-900 hover:bg-gray-100'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}
-                >
-                  Get Started
-                </motion.button>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Integration Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Seamlessly Integrated
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Works perfectly with your existing tools and workflows
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="bg-linear-to-br from-gray-50 to-white p-12 rounded-3xl border border-gray-100"
-          >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {['Slack', 'LinkedIn', 'Indeed', 'Workday', 'Greenhouse', 'Lever', 'BambooHR', 'ADP'].map((tool, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.1 }}
-                  className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-sm"
-                >
-                  <div className="text-gray-400 font-medium">{tool}</div>
-                </motion.div>
+                </ScrollReveal>
               ))}
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-linear-to-br from-indigo-600 to-purple-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10" />
-        <motion.div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-white rounded-full opacity-10"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0]
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-white rounded-full opacity-10"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [0, -90, 0]
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-        
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Ready to Transform Your Hiring?
-            </h2>
-            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-              Join thousands of companies that have revolutionized their recruitment process with AI
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-white text-gray-900 rounded-full font-medium hover:bg-gray-100 transition-all flex items-center justify-center group"
-              >
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-transparent text-white rounded-full font-medium border-2 border-white hover:bg-white hover:text-gray-900 transition-all"
-              >
-                Schedule Demo
-              </motion.button>
-            </div>
-            <div className="mt-8 flex items-center justify-center space-x-6 text-white/80 text-sm">
-              <div className="flex items-center">
-                <Award className="w-5 h-5 mr-2" />
-                SOC2 Certified
-              </div>
-              <div className="flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                GDPR Compliant
-              </div>
-              <div className="flex items-center">
-                <Globe className="w-5 h-5 mr-2" />
-                Available Worldwide
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+        <section className="lp-py-section" id="demo">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">Demo tour</div>
+              <h2 className="lp-h2">A product story that feels real</h2>
+              <p className="lp-p-hero">Show the value before the first sales call with a polished experience that explains itself instantly.</p>
+            </ScrollReveal>
 
-      {/* Footer */}
-      <footer className="py-16 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Brain className="w-8 h-8 text-indigo-400" />
-                <span className="text-xl font-semibold">RecruitAI</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                The future of intelligent recruiting, powered by artificial intelligence.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">GDPR</a></li>
-              </ul>
+            <div className="lp-demo-grid">
+              <ScrollReveal direction="left">
+                <div className="lp-demo-panel lp-glass-panel">
+                  <div className="lp-demo-header">
+                    <Video size={18} />
+                    <span>45-second product walkthrough</span>
+                  </div>
+                  <div className="lp-demo-video-frame">
+                    <button className="lp-demo-play" aria-label="Play product demo">
+                      <Play size={24} />
+                    </button>
+                    <div className="lp-demo-video-copy">
+                      <strong>Automate sourcing, screening, and interviewing</strong>
+                      <p>RECRUT helps teams move from intake to shortlist with less manual effort and better signal.</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal direction="right" delay={0.1}>
+                <div className="lp-demo-side">
+                  {[
+                    { icon: Cpu, title: 'AI Matching', text: 'Rank candidates by skill, experience, and role fit.' },
+                    { icon: LineChart, title: 'Hiring Analytics', text: 'Track pipeline health and conversion in one dashboard.' },
+                    { icon: Rocket, title: 'Fast setup', text: 'Launch your hiring workflow without a long implementation.' },
+                  ].map((item) => {
+                    const ItemIcon = item.icon;
+
+                    return (
+                      <div key={item.title} className="lp-demo-stat lp-glass-panel">
+                        <ItemIcon size={20} />
+                        <div>
+                          <h3>{item.title}</h3>
+                          <p>{item.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollReveal>
             </div>
           </div>
-          
-          <div className="pt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
-            <p>&copy; 2024 RecruitAI. All rights reserved.</p>
+        </section>
+
+        <section className="lp-py-section" id="integrations">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">Integrations</div>
+              <h2 className="lp-h2">Works with the tools your team already uses</h2>
+              <p className="lp-p-hero">Connect your ATS, collaboration tools, and calendar stack in minutes.</p>
+            </ScrollReveal>
+
+            <div className="lp-integration-grid">
+              {integrations.map((integration, index) => (
+                <ScrollReveal key={integration} delay={index * 0.04}>
+                  <div className="lp-integration-chip">
+                    <Layers3 size={16} />
+                    <span>{integration}</span>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        <section className="lp-py-section">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">Social proof</div>
+              <h2 className="lp-h2">Teams ship hiring faster with less friction</h2>
+              <p className="lp-p-hero">A clear product story is reinforced with real-looking outcomes, credibility, and confidence.</p>
+            </ScrollReveal>
+
+            <div className="lp-grid lp-grid-cols-3 lp-gap-8">
+              {testimonials.map((testimonial, index) => (
+                <ScrollReveal key={testimonial.name} delay={index * 0.08}>
+                  <div className="lp-testimonial-card lp-glass-panel">
+                    <Quote size={18} className="lp-quote-icon" />
+                    <div className="lp-testimonial-stars">
+                      {Array.from({ length: 5 }).map((_, starIndex) => (
+                        <Star key={starIndex} size={14} fill="currentColor" />
+                      ))}
+                    </div>
+                    <p className="lp-p-large">{testimonial.quote}</p>
+                    <div className="lp-testimonial-meta">
+                      <div className="lp-avatar">{testimonial.name.split(' ').map((part) => part[0]).join('')}</div>
+                      <div>
+                        <h3>{testimonial.name}</h3>
+                        <span>{testimonial.role}</span>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="lp-py-section" id="pricing">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">Pricing</div>
+              <h2 className="lp-h2">Choose the plan that matches your hiring motion</h2>
+              <p className="lp-p-hero">Monthly or annual billing with a clear upgrade path from startup to enterprise.</p>
+            </ScrollReveal>
+
+            <div className="lp-billing-toggle-wrap">
+              <button className={`lp-billing-toggle ${!isAnnualBilling ? 'is-active' : ''}`} onClick={() => setIsAnnualBilling(false)}>
+                Monthly
+              </button>
+              <button className={`lp-billing-toggle ${isAnnualBilling ? 'is-active' : ''}`} onClick={() => setIsAnnualBilling(true)}>
+                Annual <span>Save 20%</span>
+              </button>
+            </div>
+
+            <div className="lp-grid lp-grid-cols-3 lp-gap-8">
+              {pricingPlans.map((plan, index) => (
+                <ScrollReveal key={plan.name} delay={index * 0.08}>
+                  <div className={`lp-pricing-card ${plan.highlighted ? 'highlighted' : ''}`}>
+                    <div className="lp-pricing-top">
+                      <h3 className="lp-h3">{plan.name}</h3>
+                      {plan.highlighted && <span className="lp-plan-badge">Most popular</span>}
+                    </div>
+                    <p className="lp-pricing-description">{plan.description}</p>
+                    <div className="lp-pricing-price">
+                      <span>{isAnnualBilling ? plan.priceAnnual : plan.priceMonthly}</span>
+                      {plan.priceMonthly !== 'Custom' && <small>/month</small>}
+                    </div>
+                    <ul className="lp-feature-list">
+                      {plan.features.map((feature) => (
+                        <li key={feature}>
+                          <CheckCircle size={16} />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <a className={`lp-btn ${plan.highlighted ? 'lp-btn-primary' : 'lp-btn-secondary'} lp-w-full`} href={signUpUrl}>
+                      {plan.priceMonthly === 'Custom' ? 'Contact Sales' : 'Start Free'}
+                    </a>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="lp-py-section" id="faq">
+          <div className="lp-container">
+            <ScrollReveal className="lp-text-center lp-mb-20">
+              <div className="lp-section-kicker">FAQ</div>
+              <h2 className="lp-h2">Frequently asked questions</h2>
+              <p className="lp-p-hero">Answer the buying questions that usually block conversion.</p>
+            </ScrollReveal>
+
+            <div className="lp-faq-list">
+              {faqs.map((faq, index) => {
+                const isOpen = openFaq === index;
+
+                return (
+                  <ScrollReveal key={faq.question} delay={index * 0.06}>
+                    <button className={`lp-faq-item ${isOpen ? 'is-open' : ''}`} onClick={() => setOpenFaq(isOpen ? -1 : index)}>
+                      <div className="lp-faq-question">
+                        <h3>{faq.question}</h3>
+                        {isOpen ? <Minus size={18} /> : <Plus size={18} />}
+                      </div>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="lp-faq-answer-wrap"
+                          >
+                            <p>{faq.answer}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="lp-py-section">
+          <div className="lp-container">
+            <ScrollReveal>
+              <div className="lp-cta-panel lp-glass-panel lp-flex lp-items-center lp-justify-between">
+                <div className="lp-cta-copy">
+                  <div className="lp-section-kicker">Ready to launch</div>
+                  <h2 className="lp-h2" style={{ marginBottom: '1rem' }}>Ready to scale?</h2>
+                  <p className="lp-p-large">Join the recruitment revolution and build your dream team with AI.</p>
+                </div>
+                <a className="lp-btn lp-btn-primary" href={signUpUrl}>
+                  Get Started Free
+                  <ChevronRight size={20} />
+                </a>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+      </main>
+
+      <Footer
+        brandName="RECRUT"
+        brandDescription="Next-generation AI recruitment platform for modern teams."
+        socialLinks={[
+          { icon: <Twitter className="w-6 h-6" />, href: 'https://twitter.com', label: 'Twitter' },
+          { icon: <Linkedin className="w-6 h-6" />, href: 'https://linkedin.com', label: 'LinkedIn' },
+          { icon: <Github className="w-6 h-6" />, href: 'https://github.com', label: 'GitHub' },
+          { icon: <Mail className="w-6 h-6" />, href: 'mailto:contact@recrut.ai', label: 'Email' },
+        ]}
+        navLinks={[
+          { label: 'Product', href: '#' },
+          { label: 'Company', href: '#' },
+          { label: 'Resources', href: '#' },
+          { label: 'Legal', href: '#' },
+        ]}
+        creatorName="RECRUT Team"
+        creatorUrl="https://recrut.ai"
+        brandIcon={<Brain className="footer-logo-icon footer-logo-icon-small" />}
+      />
     </div>
   );
 };
